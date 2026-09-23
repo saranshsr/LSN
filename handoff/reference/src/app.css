@@ -1,0 +1,912 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Language switch nudge — prototype stylesheet
+
+   Three layers, in order:
+     1. fonts + reset
+     2. the shell (the page around the phones: title, rail, device chrome)
+     3. the screens (everything inside the 375 × 812 device)
+
+   Device metrics are mirrored from the Figma frames, noted where they matter.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1. Fonts + reset ─────────────────────────────────────────────────────── */
+
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Regular.woff2") format("woff2");   font-weight: 400; font-display: swap; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Medium.woff2") format("woff2");    font-weight: 500; font-display: swap; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-SemiBold.woff2") format("woff2");  font-weight: 600; font-display: swap; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Bold.woff2") format("woff2");      font-weight: 700; font-display: swap; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+
+/* ── Motion ────────────────────────────────────────────────────────────────
+   Curves and durations come from @field-ds/tokens (see tokens.css), not from a
+   parallel system. Two notes on that mapping:
+     · `loft` (0.22, 1, 0.36, 1) is the DS's strong ease-out — used for every
+       entrance and exit.
+     · `standard` (0.32, 0.72, 0, 1) is the Ionic drawer curve — used for the
+       sheet and for on-screen movement. The DS's own `easeinout`
+       (0.6, 0, 0.4, 1) is weaker than the craft bar for a morph; flagged for
+       the DS rather than forked here.
+   No `ease-in` anywhere: it delays the frame the user is watching hardest. */
+:root {
+  --ease-out: var(--motion-easing-loft);
+  --ease-drawer: var(--motion-easing-standard);
+  --d-press: var(--motion-duration-sm);        /* 160ms */
+  --d-overlay: var(--motion-duration-base);    /* 200ms */
+  --d-exit: var(--motion-duration-recede);     /* 180ms */
+  --d-nudge: var(--motion-duration-lg);        /* 260ms */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  /* Noontree has no Arabic glyphs; Noto Sans Arabic picks up the Arabic runs. */
+  font-family: Noontree, "Noto Sans Arabic", system-ui, sans-serif;
+  color: var(--colour-text-n-icon-primary);
+  background: #0f1115;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, p { margin: 0; }
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* Press feedback — the interface confirming it heard you. `scale` takes the
+   label and icon with it, which is what makes it read as a physical press. */
+.btn-neutral,
+.btn-lg,
+.glyph-btn,
+.tooltip-btn,
+.chip,
+.suggestion,
+.card-add,
+.card-heart,
+.key,
+.mp-tile,
+.cat {
+  /* The press spring (response 0.18 s, damping 0.62), baked into linear() —
+     the same physics as every Motion spring in the flow, for the one thing
+     CSS still owns. Quick down, a soft settle back. */
+  transition: transform 0.32s linear(0, 0.1047, 0.3149, 0.5464, 0.7499, 0.9032, 1.0031, 1.0568, 1.0763, 1.0738, 1.0598, 1.0419, 1.0251, 1.0116, 1.0023, 0.9969, 0.9944, 0.9941, 0.9949, 0.9962, 0.9976, 0.9987, 0.9996, 1.0001, 1.0004, 1);
+}
+.btn-neutral:active,
+.btn-lg:active,
+.glyph-btn:active,
+.tooltip-btn:active,
+.chip:active,
+.suggestion:active,
+.card-add:active,
+.card-heart:active,
+.mp-tile:active,
+.cat:active { transform: scale(0.97); }
+/* Keys are small, so they need a deeper press to register as one. */
+.key:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Fewer and gentler, not zero: colour and opacity stay, movement goes. */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+img { display: block; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+/* ── 2. Shell ─────────────────────────────────────────────────────────────── */
+
+.shell {
+  min-height: 100%;
+  padding: 40px 32px 72px;
+  color: #e8eaf0;
+}
+
+.shell-head { max-width: 1180px; margin: 0 auto 32px; }
+
+.shell-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #7c8598;
+}
+
+.shell-title { margin: 6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #f5f7fa; }
+
+.shell-sub { margin: 10px 0 0; max-width: 62ch; font-size: 14px; line-height: 22px; color: #9aa3b4; }
+
+.shell-source { margin: 14px 0 0; font-size: 12px; line-height: 20px; color: #6b7487; }
+.shell-source code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #8b94a8; }
+
+/* Step rail — the seven beats, so a reviewer can see where they are. */
+.rail { display: flex; flex-wrap: wrap; gap: 6px; margin: 22px 0 0; }
+.rail-step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px 7px 9px;
+  border: 1px solid #262b36; border-radius: 999px;
+  font-size: 12px; color: #8b94a8;
+}
+.rail-step[data-state="done"] { color: #b9c1d1; border-color: #333a49; }
+.rail-step[data-state="current"] { color: #0f1115; background: #ffd600; border-color: #ffd600; font-weight: 600; }
+.rail-num {
+  display: grid; place-items: center; width: 18px; height: 18px; border-radius: 999px;
+  background: #20252f; font-size: 10px; font-weight: 600;
+}
+.rail-step[data-state="current"] .rail-num { background: rgba(0, 0, 0, 0.16); color: inherit; }
+
+.stage { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; max-width: 1180px; margin: 0 auto; }
+
+.lane { width: 375px; }
+
+.lane-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 14px; }
+.lane-name { margin: 0; font-size: 15px; font-weight: 600; color: #e8eaf0; }
+.lane-tag { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #6b7487; }
+.lane-note { margin: 0 0 14px; font-size: 12px; line-height: 19px; color: #7c8598; }
+
+.lane-foot { display: flex; align-items: center; gap: 10px; margin: 14px 0 0; }
+.lane-btn {
+  padding: 7px 12px; border: 1px solid #333a49; border-radius: 8px;
+  font-size: 12px; font-weight: 500; color: #b9c1d1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lane-btn:hover { border-color: #4a5364; color: #e8eaf0; }
+}
+.lane-state { font-size: 11px; color: #6b7487; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* ── 3. Device ────────────────────────────────────────────────────────────── */
+
+.device {
+  /* Every Field body style carries -0.1px; headings override to -0.15/-0.25. */
+  letter-spacing: -0.1px;
+  position: relative;
+  width: 375px; height: 812px;
+  overflow: hidden;
+  border-radius: 34px;
+  background: var(--colour-surface-primary);
+  box-shadow: 0 0 0 1px #2a3040, 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  color: var(--colour-text-n-icon-primary);
+}
+
+/* No recede behind the sheet. iOS pushes the presenting screen back, but
+   frame 5 does not — its scrim runs edge to edge over a full-size background —
+   and scaling it exposed the device behind as black bars. The frame wins. */
+/* `isolation` matters: the header and status bar carry z-indices, and without
+   a stacking context here they paint above the sheet's scrim — the whole
+   top of the screen stayed bright while the rest dimmed. */
+.device-screens { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+
+/* A pushed screen casts a shadow on its leading edge, the way a real
+   navigation stack does — it is what makes it read as a layer above. */
+.screen-layer { position: absolute; inset: 0; }
+.screen-layer[data-push="true"] { box-shadow: -8px 0 24px rgba(16, 22, 40, 0.14); }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--colour-surface-primary); }
+
+/* Status bar — absolute, at the frame's measured positions, so nothing can
+   shrink or clip the battery cap. Ink is black, as the frame exports it. */
+.statusbar {
+  position: relative; flex: none; height: 42.57px;
+  color: #000; overflow: visible;
+}
+.statusbar-time {
+  position: absolute; left: 33px; top: 12.35px;
+  /* OS chrome, so it uses the OS font rather than Noontree — that is what the
+     frame's status-bar component renders. */
+  font-family: -apple-system, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.7px;
+}
+.statusbar-cellular { position: absolute; left: 293px; top: 16.6px; }
+.statusbar-wifi     { position: absolute; left: 315px; top: 15.8px; }
+.statusbar-battery  { position: absolute; left: 335.33px; top: 16.8px; }
+
+.homebar { flex: none; height: 25px; display: grid; place-items: center; }
+.homebar::after { content: ""; width: 134px; height: 5px; border-radius: 3px; background: var(--colour-text-n-icon-primary); }
+
+/* Scrollers */
+/* 85 = the nav's height, so the last row still clears it. Rubber-banding is
+   handled in JS (useRubberBand); `contain` stops the page scrolling instead. */
+.scroll { flex: 1; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding-bottom: 85px; }
+.scroll::-webkit-scrollbar { width: 0; }
+.hscroll { display: flex; overflow-x: auto; scrollbar-width: none; }
+.hscroll::-webkit-scrollbar { height: 0; }
+
+/* ── Search bar (M-SearchBar H44) ─────────────────────────────────────────── */
+
+.searchbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px;
+  background: var(--colour-surface-primary);
+  border: 1px solid var(--colour-border-primary);
+  border-radius: 12px;
+}
+.searchbar-input { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; font-size: 14px; line-height: 20px; }
+.searchbar-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.searchbar-input[data-placeholder="true"] { color: var(--colour-text-n-icon-tertiary); }
+.searchbar-divider { width: 1px; height: 20px; background: var(--colour-border-primary); }
+.searchbar-icon { color: var(--colour-text-n-icon-primary); flex: none; }
+[dir="rtl"] .searchbar-icon--back { transform: scaleX(-1); }
+@keyframes caret-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.searchbar-caret {
+  width: 1.5px; height: 18px; background: var(--colour-surface-action-extrabold);
+  animation: caret-blink 1.06s step-end infinite;
+}
+/* A caret that blinks mid-word reads as a glitch; it only blinks at rest. */
+.searchbar-caret[data-typing="true"] { animation: none; }
+
+/* ── PLP header: search + nudge ───────────────────────────────────────────
+   Roles per the motion handoff (SPEC §2). Every resting style here is the same
+   as before — the handoff changes how these move, not how they look. Geometry
+   and opacity are written per frame from `geom()`; nothing below animates in
+   CSS, because a CSS transition cannot be retargeted mid-flight with velocity. */
+
+.plp-header {
+  position: absolute; inset-inline: 0; top: 0; z-index: 2;
+  background: var(--colour-surface-primary);
+}
+/* Collapsed LTR header: 42.57 + 8 + 44 + 14 = 108.57 (frame 4). */
+.plp-header--plain { padding: 50.57px 12px 14px; }
+/* The RTL header is its own frame — 375 × 64 at y43, so 10 above and below
+   the bar and a total of 106.57. It is a detached rebuild, not a mirror of
+   frame 4, and its grid inset differs too. */
+.plp-header--ar { padding: 52.57px 12px 10px; }
+[dir="rtl"] .grid { padding-top: 4px; }
+.screen .statusbar { position: absolute; inset-inline: 0; top: 0; z-index: 3; }
+
+.nudge-stage { position: absolute; }
+
+/* container — clips its children; white underneath so it vanishes into the
+   search field as `geo` absorbs it. */
+.nudge-card {
+  position: absolute; top: 0; left: 0; overflow: hidden;
+  background: var(--colour-surface-primary);
+}
+/* Card fill, from 303:13393: #F5FAFF → #EBF4FF along Figma's gradient handles. */
+.nudge-grad { position: absolute; inset: 0; background: linear-gradient(104.2deg, #f5faff 0.5%, #ebf4ff 76.3%); }
+/* The halftone (303:13395): #85BDFF dots at 30%, linear dodge, denser toward
+   the bottom-left. Rendered from Figma's own dot geometry. */
+.nudge-halftone {
+  position: absolute; left: 0; top: 0; width: 351px; height: 108px; pointer-events: none;
+  background: url("/img/nudge/halftone-nudge.png") 0 0 / 351px 108px no-repeat;
+  opacity: 0.3; mix-blend-mode: plus-lighter;
+}
+.nudge-inner { position: absolute; inset: 0; }
+
+/* The glyph (303:13394) at x143 y49 — exported with its white radial fade,
+   edge stroke and blue glow; the SVG's own 44pt glow padding puts it at 99, 4.4. */
+.nudge-watermark {
+  position: absolute; left: 99px; top: 4.4px; width: 160px; height: 104px;
+  transform-origin: 80px 77.6px; pointer-events: none;
+}
+.nudge-watermark img { display: block; }
+
+.nudge-row {
+  position: absolute; left: 10px; top: 66px; width: 331px; height: 32px;
+  display: flex; align-items: center;
+}
+/* The icon that would sit here floats above the clip instead (SPEC §2). */
+.nudge-icon-slot { flex: none; width: 32px; height: 32px; }
+
+.nudge-label {
+  margin-inline-start: 2px; min-width: 0;
+  font-size: 13px; line-height: 20px; font-weight: 600; letter-spacing: -0.1px;
+  color: var(--colour-text-n-icon-primary);
+  white-space: nowrap; overflow: hidden;
+}
+.nudge-label span { display: inline-block; will-change: transform, opacity, filter; }
+.nudge-actions { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+
+/* M-NeutralButton H32, split into surface + label so the entrance can form the
+   pill before its text arrives. */
+.btn-neutral {
+  position: relative; overflow: hidden;
+  height: 32px; padding: 0 12px; border-radius: 9999px;
+  font-size: 13px; line-height: 20px; font-weight: 600; letter-spacing: -0.1px;
+  white-space: nowrap;
+}
+.pill-surface {
+  position: absolute; inset: 0; border-radius: 9999px;
+  border: 1px solid transparent;
+}
+.pill-label { position: relative; }
+.btn-neutral--quiet { color: var(--colour-text-n-icon-primary); }
+.btn-neutral--quiet .pill-surface {
+  background: rgba(255, 255, 255, 0.64);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+.btn-neutral--bold { color: var(--colour-text-n-icon-on-surface-bold); }
+.btn-neutral--bold .pill-surface {
+  background: #1d2539;
+  border-color: var(--base-colour-grey-1000);
+}
+
+/* search — above the container, travels in x and width. */
+.nudge-search {
+  position: absolute; top: 0; left: 0;
+  background: var(--colour-surface-primary);
+  border: 1px solid transparent;
+}
+.nudge-search .searchbar { width: 100%; height: 100%; border: 0; }
+
+/* buttonSurface — a bare square; the moving icon lands on it. */
+.nudge-button {
+  position: absolute; top: 0; left: 0;
+  border-radius: 12px;
+  background: var(--colour-surface-primary);
+  border: 1px solid var(--colour-border-action);
+  transform-origin: 50% 50%;
+}
+
+/* The one icon, above everything and outside the container's clip. */
+.nudge-icon {
+  position: absolute; top: 0; left: 0; z-index: 3;
+  display: grid; place-items: center;
+  color: var(--colour-text-n-icon-primary);
+  pointer-events: none;
+}
+
+/* Entrance shimmer (SPEC §6.2) — a border-only rim, a tint behind the content,
+   and a glint clipped to the Switch pill. */
+.nudge-tint { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.nudge-rim {
+  position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  padding: 1.5px; border-radius: inherit;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.pill-glint {
+  position: absolute; top: -8px; bottom: -8px; left: 0; width: 34px;
+  background: rgba(255, 255, 255, 0.28);
+  opacity: 0; pointer-events: none;
+}
+
+/* Still used by the tooltip lane and the RTL header. */
+.plp-row { display: flex; align-items: center; gap: 8px; }
+.plp-row .searchbar { flex: 1; min-width: 0; }
+.glyph-btn {
+  display: grid; place-items: center; flex: none;
+  width: 32px; height: 32px; border-radius: 8px;
+  color: var(--colour-text-n-icon-primary);
+}
+.glyph-btn--standalone {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--colour-surface-primary);
+  border: 1px solid var(--colour-border-action);
+}
+
+/* ── Filter chips ─────────────────────────────────────────────────────────── */
+
+/* The track bleeds to the screen edges and carries the 12pt inset itself, so
+   chips scroll under the edge of the phone instead of being cut 12pt short of
+   it. Logical properties, so the Arabic row mirrors. The end inset is a spacer:
+   8 of gap + 4 — flex scrollers don't reliably keep end padding. */
+.chiprow { flex: none; padding: 8px 0; }
+.chiprow-track { display: flex; gap: 8px; padding-inline-start: 12px; }
+.chiprow-track::after { content: ""; flex: none; width: 4px; }
+.chip {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--colour-border-primary); border-radius: 999px;
+  font-size: 13px; line-height: 20px; color: var(--colour-text-n-icon-secondary);
+  background: var(--colour-surface-primary);
+}
+.chip svg { color: var(--colour-text-n-icon-secondary); }
+
+/* ── Product grid ─────────────────────────────────────────────────────────── */
+
+/* Cards are 171.5 at x12 / x191.5; rows and columns both gap 8, per the frame. */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 12px 16px; }
+
+.card {
+  overflow: hidden;
+  border-radius: 12px;
+  /* No outline. The frame has none, and a hairline around every card turns a
+     grid into a sheet of boxes — outlines read flat, overlap reads deep. */
+  background: var(--colour-surface-primary);
+}
+.card-media { position: relative; aspect-ratio: 3 / 4; background: var(--colour-surface-tertiary); }
+.card-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+.card-flag {
+  position: absolute; top: 0; inset-inline-start: 0;
+  padding: 2px 6px; border-end-end-radius: 8px;
+  background: var(--colour-surface-success-bold);
+  color: var(--colour-text-n-icon-on-surface-bold);
+  font-size: 12px; font-weight: 600;
+}
+.card-heart {
+  position: absolute; top: 8px; inset-inline-end: 8px;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(6px);
+}
+.card-ad {
+  position: absolute; bottom: 8px; inset-inline-start: 8px;
+  min-width: 21px; height: 15px; padding: 0 4px; border-radius: 4px;
+  display: grid; place-items: center;
+  background: var(--colour-surface-muted); color: var(--colour-text-n-icon-tertiary);
+  font-size: 10px; line-height: 15px;
+}
+.card-dots {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px; height: 12px;
+}
+.card-dots i { display: block; border-radius: 999px; background: rgba(255, 255, 255, 0.75); }
+.card-dots i:first-child { background: var(--colour-surface-primary); }
+.card-add {
+  position: absolute; bottom: 8px; inset-inline-end: 8px;
+  display: grid; place-items: center; width: 32px; height: 32px;
+  border: 1px solid var(--colour-border-primary); border-radius: 8px;
+  background: var(--colour-surface-primary);
+}
+.card-deal {
+  height: 20px; padding: 0 8px; display: flex; align-items: center;
+  background: var(--colour-surface-primary-inverted);
+  color: var(--colour-text-n-icon-on-surface-bold);
+  font-size: 12px;
+}
+
+/* 8 / 5 / 8 lands the card on the frame's 421.33 exactly. */
+.card-body { display: flex; flex-direction: column; gap: 5px; padding: 8px; }
+/* No min-height: the LTR titles wrap to two lines on their own, and the RTL
+   frame's shorter Arabic titles take one, exactly as drawn. */
+.card-title {
+  font-size: 14px; line-height: 20px; font-weight: 500;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-rating {
+  align-self: flex-start; display: flex; align-items: center; gap: 3px;
+  padding: 2px 4px; border-radius: 4px; background: var(--colour-surface-tertiary);
+  font-size: 12px;
+}
+.card-rating b { font-weight: 600; }
+.card-rating span { color: var(--colour-text-n-icon-secondary); }
+.card-price { display: flex; align-items: center; gap: 4px; }
+.card-price-now { display: flex; align-items: center; gap: 3px; font-size: 16px; font-weight: 700; }
+.card-price-was { font-size: 12px; color: var(--colour-text-n-icon-muted); text-decoration: line-through; }
+.card-price-off { font-size: 12px; font-weight: 600; color: var(--colour-text-n-icon-success-bold); }
+.card-lowest { display: flex; align-items: center; gap: 4px; height: 16px; font-size: 12px; color: var(--colour-text-n-icon-secondary); }
+.card-lowest span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-coupons { display: flex; align-items: center; gap: 4px; }
+.coupon {
+  padding: 2px 4px; border-radius: 4px; white-space: nowrap;
+  background: var(--colour-surface-success-subtle);
+  border: 1px dashed var(--colour-border-success);
+  box-shadow: 0 0 0 1px #eff7ff;
+  font-size: 12px; font-weight: 600; color: var(--colour-text-n-icon-success-bold);
+}
+.card-express { display: flex; align-items: center; gap: 4px; }
+.express-pill {
+  padding: 2px 6px; border-radius: 4px; background: var(--colour-surface-brand-primary);
+  font-size: 12px; font-weight: 700; font-style: italic; line-height: 14px;
+}
+.card-eta { font-size: 11px; color: var(--colour-text-n-icon-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Bottom nav (M-Bottomnav 60 + 25) ─────────────────────────────────────── */
+
+.bottomnav {
+  position: absolute; inset-inline: 0; bottom: 0; z-index: 2;
+  background: var(--colour-surface-primary);
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.06);
+}
+.bottomnav-row { height: 60px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.bottomnav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: 11px; color: var(--colour-text-n-icon-secondary);
+}
+.bottomnav-item[data-active="true"] { color: var(--colour-surface-action-extrabold); font-weight: 600; }
+
+/* ── Search overlay ───────────────────────────────────────────────────────── */
+
+.search-screen { background: var(--colour-surface-primary); }
+/* The status bar is absolute on every screen, so these offsets include it:
+   42.57 + 27.43 puts the bar at the frame's y70; rows start at y126. */
+.search-head { flex: none; padding: 70px 16px 8px; }
+
+/* The bar's travel from Home's y194 to y70, the suggestions and the keyboard
+   are Motion springs now (SearchScreen / Keyboard), not CSS keyframes — a
+   keyframe cannot be retargeted mid-flight. */
+.suggestion {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; height: 48px; padding: 0 16px;
+  font-size: 14px; font-weight: 600; text-align: start;
+}
+.suggestion svg { color: var(--colour-text-n-icon-tertiary); flex: none; }
+
+/* iOS keyboard — a prop. Grey block y516–770, rows 41.5 on a 52 pitch. */
+.keyboard { flex: none; background: #e0e3e7; border-radius: 12px 12px 0 0; user-select: none; }
+.keyboard-keys { padding: 23px 8px 32.5px; }
+.keyboard-row { display: flex; gap: 6.5px; height: 41.5px; margin-bottom: 10.5px; }
+.keyboard-row:last-child { margin-bottom: 0; }
+.keyboard-row--indent { padding: 0 18px; }
+.key {
+  flex: 1; display: grid; place-items: center;
+  background: #fff; border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+  font-size: 22px; font-weight: 400;
+}
+.key--mod { flex: 0 0 42px; background: #adb3bd; font-size: 18px; }
+.key--abc { flex: 0 0 86px; background: #adb3bd; font-size: 15px; }
+.key--dot { flex: 0 0 34px; }
+.key--return { flex: 0 0 90px; background: #0088ff; color: #fff; font-size: 18px; }
+.keyboard-foot {
+  flex: none; height: 43px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 34px; color: var(--colour-text-n-icon-primary);
+}
+
+/* ── Bottom sheet ─────────────────────────────────────────────────────────── */
+
+/* Sampled off the frame at 80% black — surface/overlay/bold exactly. */
+/* The reload growing out of the Switch button, landing on the clip's own
+   opening frame — white, so the join is invisible. */
+.burst { position: absolute; z-index: 5; background: var(--colour-surface-primary); pointer-events: none; }
+
+.sheet-scrim { position: absolute; inset: 0; background: var(--colour-surface-overlay-bold); }
+.sheet-dock { position: absolute; inset-inline: 0; bottom: 0; z-index: 1; touch-action: none; }
+.sheet-grabber { height: 28px; display: grid; place-items: center; cursor: grab; }
+.sheet-grabber::after { content: ""; width: 36px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.6); }
+/* 351 × 280 at x12. Ink positions measured off the frame: glyph 33–73,
+   title 93–117, body box 132–198, buttons 216–264. */
+.sheet {
+  position: relative; overflow: hidden;
+  margin: 0 12px; height: 280px;
+  border-radius: 16px;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12);
+  /* 278:89201: a flat #F2F3F7 — the light at the top is the halftone. */
+  background: var(--colour-surface-tertiary);
+}
+.sheet-header {
+  height: 93px; padding-top: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sheet-header svg { color: var(--colour-surface-action-extrabold); }
+.sheet-title { padding: 0 20px; text-align: center; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.15px; }
+.sheet-body { height: 66px; }
+.sheet-body {
+  margin: 15px 16px 0; padding: 13px 14px; border-radius: 12px;
+  background: var(--colour-surface-primary);
+  font-size: 13px; line-height: 20px; color: var(--colour-text-n-icon-secondary);
+}
+.sheet-body b { font-weight: 700; color: var(--colour-text-n-icon-secondary); }
+.sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 17px 16px 16px; }
+/* Content sits above the drifting background. */
+.sheet > :not(.sheet-aura) { position: relative; z-index: 1; }
+
+/* The Arabic sheet: same frame, 16pt taller for the English lifeline under the
+   title, and Arabic set a touch looser — Noto's ascenders need the room. */
+.sheet--ar { height: 296px; }
+.sheet--ar .sheet-title { line-height: 28px; letter-spacing: 0; margin-top: -4px; }
+.sheet--ar .sheet-body { letter-spacing: 0; }
+.sheet-gloss {
+  margin-top: 2px; text-align: center;
+  font-size: 12px; line-height: 16px; font-weight: 500;
+  color: var(--colour-text-n-icon-tertiary);
+}
+
+/* The sheet's background, exactly where Figma draws it: the Header Slot's
+   halftone (278:89203) — #85BDFF dots at 28%, densest top-left, fading out by
+   120pt. It is the one thing that moves in the sheet: the dots breathe and
+   drift a few points, very slowly, so the surface feels alive while the copy
+   stays still. A continuous loop has no target for a spring, so CSS owns it.
+   It fades in once the sheet has docked; under reduced motion it holds still. */
+.sheet-aura {
+  position: absolute; left: 0; top: 0; width: 351px; height: 120px; z-index: 0; pointer-events: none;
+  background: url("/img/nudge/halftone-sheet.png") 0 0 / 351px 120px no-repeat;
+  opacity: 0.28;
+  animation: aura-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both, aura-breathe 7s ease-in-out 1.5s infinite alternate;
+}
+.sheet-aura i { display: none; }
+@keyframes aura-in { from { opacity: 0; } to { opacity: 0.28; } }
+@keyframes aura-breathe {
+  from { opacity: 0.28; transform: translate(0, 0); }
+  to   { opacity: 0.4;  transform: translate(6px, 2px); }
+}
+@media (prefers-reduced-motion: reduce) { .sheet-aura { animation: aura-in 0.01s both; } }
+.btn-lg { height: 48px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+.btn-lg--secondary { background: var(--colour-surface-primary); }
+.btn-lg--primary { background: var(--colour-surface-secondary-inverted); color: var(--colour-text-n-icon-on-surface-bold); }
+.sheet-homebar { height: 33px; display: grid; place-items: center; }
+.sheet-homebar::after { content: ""; width: 134px; height: 5px; border-radius: 3px; background: var(--colour-text-n-icon-primary); }
+
+/* ── Splash ───────────────────────────────────────────────────────────────── */
+
+
+/* ── Transition clip ──────────────────────────────────────────────────────
+   The shipped app's own wordmark morph. Our status bar sits over the
+   recording's, which carries the capture's clock and Dynamic Island. */
+.screen--transition { background: var(--colour-surface-primary); }
+.transition-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; background: var(--colour-surface-primary);
+}
+.screen--transition .statusbar {
+  position: absolute; inset-inline: 0; top: 0; z-index: 2;
+  /* 46, not 42.57: the recording's Dynamic Island runs to y45, and its glyphs
+     are absolutely positioned so the extra height does not move ours. */
+  height: 46px;
+  background: var(--colour-surface-primary);
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────────────────
+   Same geometry as the real PLP, so nothing shifts when content lands.
+   Fill and sweep timing measured off the real app's recording. */
+/* Same reason: 42.57 for the absolute status bar, then the frame's offsets. */
+.sk-body { position: relative; flex: 1; overflow: hidden; padding-top: 42.57px; }
+.sk { background: var(--colour-surface-muted); }
+
+.sk-searchbar { margin: 10.43px 12px 0; height: 44px; border-radius: 12px; }
+/* bar 53–97, chips 115–151, grid 163 — the same offsets as the Figma frame. */
+.sk-chips { display: flex; gap: 8px; padding: 18px 12px 0; }
+.sk-chip { flex: none; height: 36px; border-radius: 999px; }
+
+.sk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 12px 0; }
+.sk-card { border-radius: 12px; overflow: hidden; }
+.sk-card-image { aspect-ratio: 3 / 4; border-radius: 12px 12px 0 0; }
+.sk-card-strip { height: 20px; }
+.sk-card-body { padding: 8px 8px 8.66px; }
+.sk-line { border-radius: 6px; }
+
+/* No hairline: the skeleton nav is a plain 85pt surface, as in the frame. */
+.sk-nav { flex: none; background: var(--colour-surface-primary); }
+.sk-nav-row { height: 60px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.sk-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.sk-nav-icon { width: 24px; height: 24px; border-radius: 6px; }
+.sk-nav-label { width: 32px; height: 8px; border-radius: 4px; }
+
+/* Right to left, 762ms of travel then a 508ms rest — the period the real
+   app runs at. `linear`, because constant motion should not ease. */
+@keyframes sk-shimmer {
+  0%   { transform: translateX(120%); }
+  60%  { transform: translateX(-120%); }
+  100% { transform: translateX(-120%); }
+}
+.sk-shimmer {
+  position: absolute; inset: 0; pointer-events: none;
+  /* alpha 0.38 takes #eaecf0 to #f2f3f7 and no further — the exact lift the
+     real app's sweep produces. A brighter band wipes the placeholders out. */
+  background: linear-gradient(90deg, transparent 34%, rgba(255, 255, 255, 0.38) 50%, transparent 66%);
+  animation: sk-shimmer 1.27s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* A static skeleton still reads as loading; a frozen highlight does not. */
+  .sk-shimmer { display: none; }
+}
+
+/* ── Home ─────────────────────────────────────────────────────────────────── */
+/* Status bar floats over the hero, which starts at y0 behind it. */
+.screen--home .statusbar { position: absolute; inset-inline: 0; top: 0; z-index: 2; }
+
+.home-hero {
+  position: relative; flex: none; height: 260px;
+  background: linear-gradient(180deg, #bfe1fa 0, #bfe1fa 88px, #cfeffb 145px, #e9f7fd 205px, #fff 252px);
+}
+
+.hero-sparkles i {
+  position: absolute; width: 2px; height: 2px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mp-rail { position: absolute; left: 16px; top: 52px; width: 359px; gap: 6px; }
+
+/* Tiles from node 278:46145 — 73 × 76, radius 15 (8 for Namshi and Pay). The
+   white ones are 95% opaque, which is what lets the hero gradient read through
+   them; that translucency is a lot of why the real rail does not look flat. */
+.mp-tile {
+  position: relative; flex: none; width: 73px; height: 76px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.95);
+}
+.mp-tile--noon { background: var(--colour-surface-brand-primary); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); }
+.mp-tile--sq { border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); }
+.mp-tile img, .mp-tile span { position: absolute; }
+
+.mp-noon-mark { left: 19px; top: 17px; width: 39.5px; height: 29.5px; }
+.mp-noon-word { left: 11px; top: 31px; width: 50.14px; height: 13.01px; }
+.mp-super { left: 12.44px; top: 22px; width: 49.12px; height: 15.58px; }
+.mp-mall  { left: 12.44px; top: 37.93px; width: 34.81px; height: 15.56px; }
+.mp-food  { left: 10.68px; top: 23.28px; width: 51.32px; height: 28.97px; }
+.mp-mins  { left: 8px; top: 10px; width: 57px; height: 57px; object-fit: cover; }
+.mp-brand5 { left: 20px; top: 15px; width: 33px; height: 45px; }
+.mp-namshi { left: 17px; top: 16px; width: 39.2px; height: 26.84px; object-fit: cover; }
+
+.mp-label {
+  top: 55px; width: 100%; left: 0;
+  font-size: 13px; line-height: 10px; font-weight: 700; text-align: center;
+  /* Proxima Nova Bold in the frame; Noontree stands in. noon Black, not the
+     DS text token — the frame uses the brand colour here. */
+  color: #404553;
+}
+
+.mp-pay { left: 21.84px; top: 14.84px; width: 29.16px; height: 29.16px; }
+.mp-pay-back {
+  position: absolute; inset: 0 0 0 2.43%; border-radius: 18.97px;
+  background: rgba(110, 115, 131, 0.4);
+}
+.mp-pay-face {
+  position: absolute; inset: 0 4.29% 9.86% 0; border-radius: 18.97px;
+  background: linear-gradient(-90deg, rgb(70, 89, 217) 1%, rgb(85, 35, 221) 100%);
+}
+.mp-pay-a { left: 29.14%; top: 19.43%; width: 27.55%; height: 18.6%; }
+.mp-pay-b { left: 41.5%; top: 53%; width: 27.55%; height: 18.6%; transform: rotate(180deg); }
+
+.home-address {
+  position: absolute; left: 19px; top: 144px; width: 340px; height: 40px;
+  display: grid; grid-template-columns: 18px auto 16px 1fr; align-items: center;
+  column-gap: 4px; row-gap: 0;
+}
+.home-address-label { font-size: 16px; font-weight: 600; }
+.home-address-line {
+  grid-column: 1 / -1; grid-row: 2; justify-self: start;
+  font-size: 12px; line-height: 18px; color: var(--colour-text-n-icon-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.home-heart {
+  grid-column: 4; grid-row: 1 / 3; justify-self: end;
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px;
+  background: var(--colour-surface-primary); color: var(--colour-surface-action-extrabold);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.07);
+}
+
+.home-search { position: absolute; left: 15px; top: 194px; width: 343px; }
+
+.home-content { position: relative; }
+
+/* Cashback ticket — 351 × 62 at x12, with the card art bleeding out bottom-left. */
+.cashback {
+  position: relative; overflow: hidden;
+  margin: 0 12px; height: 62px; border-radius: 12px;
+  background: linear-gradient(90deg, #f6d7ff 0, #fdf2ff 26%, #fffcff 48%, #fff9f5 74%, #fff2ea 100%);
+}
+.cashback::before, .cashback::after {
+  content: ""; position: absolute; top: 25px; width: 12px; height: 12px; border-radius: 999px;
+  background: var(--colour-surface-primary);
+}
+.cashback::before { left: -6px; }
+.cashback::after { right: -6px; }
+.cashback-art { position: absolute; left: -26px; top: 6px; width: 122px; height: 123px; object-fit: cover; }
+.cashback-title { position: absolute; left: 67px; top: 11px; font-size: 16px; font-weight: 700; line-height: 24px; }
+.cashback-sub { position: absolute; left: 83px; top: 37px; font-size: 11px; line-height: 14px; color: var(--colour-text-n-icon-secondary); }
+.cashback-pager { position: absolute; left: 292px; top: 19px; width: 22px; text-align: center; font-size: 12px; line-height: 16px; color: var(--colour-text-n-icon-tertiary); }
+.cashback-dots { position: absolute; left: 0; right: 0; top: 20px; display: flex; justify-content: center; gap: 3px; }
+.cashback-dots i { width: 4px; height: 4px; border-radius: 999px; background: var(--colour-border-medium); }
+.cashback-dots i:first-child { background: var(--colour-text-n-icon-tertiary); }
+
+/* Promo rail — card 330 wide at x12, the next one starts at x351. */
+.promo-rail { margin-top: 20px; padding-inline-start: 12px; gap: 9px; }
+.promo {
+  position: relative; flex: none; overflow: hidden;
+  width: 330px; height: 150px; border-radius: 12px; background: #fff2d6;
+}
+.promo--peek { width: 327px; background: #f8e3e0; }
+.promo-art-l { position: absolute; left: -36px; top: 10px; width: 137px; height: 173px; object-fit: cover; object-position: top center; }
+.promo-art-r { position: absolute; left: 230px; top: 33px; width: 105px; height: 121px; object-fit: cover; }
+.promo-ad {
+  position: absolute; left: 301px; top: 8px; width: 21px; height: 15px;
+  display: grid; place-items: center; border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7); color: var(--colour-text-n-icon-tertiary);
+  font-size: 10px; line-height: 15px;
+}
+.promo-copy {
+  position: absolute; left: 112px; top: 18px; width: 106px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.promo-eyebrow { display: block; font-size: 11px; line-height: 13px; font-weight: 600; }
+.promo-amount {
+  display: flex; align-items: center; justify-content: center; gap: 2px;
+  margin-top: 7px; height: 26px; font-size: 22px; font-weight: 800; letter-spacing: -0.01em;
+  gap: 0;
+}
+.promo-sub { display: block; margin-top: 7px; font-size: 12px; line-height: 14px; }
+.promo-sub--tight { margin-top: 0; }
+.promo-code {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  display: inline-flex; margin-top: 9px; height: 22px; padding: 0 8px; border-radius: 6px; white-space: nowrap;
+  background: var(--colour-surface-brand-primary);
+  font-size: 10px; font-weight: 700;
+}
+.promo-terms { display: block; margin: 3px 0 0 148px; font-size: 7px; color: var(--colour-text-n-icon-muted); }
+
+.home-section-title { margin: 22px 0 6px 14px; font-size: 16px; line-height: 22px; font-weight: 700; letter-spacing: -0.15px; }
+
+/* Category scroller — tiles 92 × 128 on a 108 pitch, two rows. */
+.cat-row { gap: 16px; padding-inline-start: 16px; margin-top: 12px; }
+.cat { flex: none; width: 92px; }
+.cat img { width: 92px; height: 90px; border-radius: 12px; object-fit: cover; }
+.cat span {
+  display: block; margin-top: 6px; height: 28px;
+  font-size: 12px; line-height: 14px; text-align: center;
+  color: var(--colour-text-n-icon-primary);
+}
+
+/* ── Tooltip variant ──────────────────────────────────────────────────────── */
+
+.tooltip-anchor { position: relative; }
+.tooltip {
+  /* Origin at the trigger: the panel has to look like it came out of the glyph. */
+  transform-origin: 100% 0;
+  position: absolute; z-index: 3; top: calc(100% + 10px); inset-inline-end: 0; width: 264px;
+  padding: 12px 14px 12px; border-radius: 14px;
+  background: var(--colour-surface-secondary-inverted);
+  color: var(--colour-text-n-icon-on-surface-bold);
+  box-shadow: 0 12px 28px -10px rgba(16, 22, 40, 0.45);
+}
+/* Opening and closing are Motion springs (components/nudge.tsx). */
+.tooltip-glyph, .tooltip-wrap { display: inline-flex; flex: none; }
+.tooltip-word { display: inline-block; white-space: pre; }
+
+.tooltip::before {
+  content: ""; position: absolute; top: -6px; inset-inline-end: 18px;
+  width: 12px; height: 12px; border-radius: 2px; transform: rotate(45deg);
+  background: var(--colour-surface-secondary-inverted);
+}
+.tooltip-head { display: flex; align-items: flex-start; gap: 8px; }
+.tooltip-label { flex: 1; font-size: 14px; line-height: 20px; font-weight: 500; }
+.tooltip-close { flex: none; opacity: 0.7; }
+.tooltip-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.tooltip-btn { height: 30px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.tooltip-btn--quiet { color: rgba(255, 255, 255, 0.72); }
+.tooltip-btn--bold { background: var(--colour-surface-primary); color: var(--colour-text-n-icon-primary); }
+
+/* Plain (collapsed / tooltip / Arabic) header — search bar plus the glyph. */
+.plp-row { display: flex; align-items: center; gap: 8px; }
+.plp-row .searchbar { flex: 1; min-width: 0; }
+
+/* Solo mode — one bare phone at true size, for comparing against Figma and
+   for presenting. Centres itself if the window is bigger than the device. */
+/* Pinned to the origin, not centred: a centred device shifts when the window
+   is wider than 375 and every headless comparison silently misaligns. */
+.solo { background: #fff; min-height: 100%; }
+.solo .device { margin: 0; }
+.solo .device { border-radius: 0; box-shadow: none; }
+
+.mp-badge .mp-caps { font-size: 9px; letter-spacing: 0.04em; }
+
+/* Dev-only readout of the handoff's acceptance checks (SPEC §9). */
+.ac-probe {
+  position: absolute; left: 0; right: 0; bottom: -16px; z-index: 9;
+  font-family: ui-monospace, Menlo, monospace; font-size: 8px; line-height: 12px;
+  color: #b0392b; text-align: center; pointer-events: none;
+}
+
+/* ── Tooltip layout (components/TooltipHeader.tsx) ─────────────────────────
+   The pale card hangs 14pt under the bar off a pointer at x44. Geometry and
+   opacity are written per frame; nothing here animates in CSS. */
+.tt-header { overflow: visible; }
+.tt-stage { position: absolute; height: 44px; }
+.tt-pop { position: absolute; left: 0; top: 0; width: 351px; height: 110px; transform-origin: 44px 51px; pointer-events: none; }
+.tt-notch { position: absolute; left: 0; top: 0; fill: var(--base-colour-brand-blue-50); transform-origin: 50% 100%; }
+.tt-card { position: absolute; left: 0; top: 0; overflow: hidden; background: var(--colour-surface-primary); }
+.tt-inner { position: absolute; left: 0; top: 0; width: 351px; height: 110px; }
+.tt-shine {
+  position: absolute; top: -30px; left: 0; width: 240px; height: 120px; opacity: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.12) 25%, rgba(255,255,255,.42) 45%,
+    rgba(255,255,255,.52) 50%, rgba(255,255,255,.42) 55%, rgba(255,255,255,.12) 75%, rgba(255,255,255,0) 100%);
+}
+.tt-watermark { position: absolute; left: 172px; top: 62px; color: var(--base-colour-brand-blue-300); pointer-events: none; }
+.tt-row {
+  position: absolute; left: 9px; top: 68px; width: 333px; height: 32px;
+  display: flex; align-items: center; pointer-events: auto;
+}
+.tt-tile-slot { flex: none; width: 32px; height: 32px; }
+.tt-label { margin-inline-start: 8px; }
+.tt-label bdi { font-family: "Noto Sans Arabic", Noontree, system-ui, sans-serif; }
+.tt-tile {
+  position: absolute; left: 0; top: 0; z-index: 3;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--colour-surface-primary); color: var(--colour-text-n-icon-primary);
+}
+.tt-tile-ring { position: absolute; inset: 0; border-radius: inherit; border: 1px solid var(--colour-border-action); pointer-events: none; }
+.tt-search { position: absolute; left: 0; top: 0; height: 44px; z-index: 2; }
+.tt-search .searchbar { height: 44px; }
+.tt-label span { white-space: pre; }
+
+/* Results loading after a search: placeholders on the real card geometry,
+   laid over the content they will hand to. */
+.plp-content { position: relative; }
+.plp-loading { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: var(--colour-surface-primary); pointer-events: none; }
+.plp-loading-chips { padding: 8px 12px 0; }
+.plp-loading-grid { padding-top: 12px; }
+
+/* The inline nudge's halftone, anchored to the tooltip card's bottom edge. */
+.tt-halftone {
+  position: absolute; left: 0; top: 58px; width: 351px; height: 52px; pointer-events: none;
+  background: url("/img/nudge/halftone-nudge.png") 0 100% / 351px 108px no-repeat;
+  opacity: 0.3; mix-blend-mode: plus-lighter;
+}

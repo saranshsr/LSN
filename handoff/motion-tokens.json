@@ -1,0 +1,462 @@
+{
+  "base": {
+    "response": 0.52,
+    "dampingFraction": 0.9,
+    "note": "stiffness=(2π/response)², damping=4π·ζ/response, mass 1. Delays in seconds at response 0.52; scale by response/0.52. Motion semantics: tools/spring-sim.ts."
+  },
+  "roles": {
+    "move": {
+      "responseMul": 1,
+      "response": 0.52,
+      "dampingFraction": 0.9,
+      "stiffness": 146.0,
+      "damping": 21.75,
+      "mass": 1
+    },
+    "layout": {
+      "responseMul": 1.2,
+      "response": 0.624,
+      "dampingFraction": 1,
+      "stiffness": 101.4,
+      "damping": 20.14,
+      "mass": 1
+    },
+    "dock": {
+      "responseMul": 0.9,
+      "response": 0.468,
+      "dampingFraction": 0.94,
+      "stiffness": 180.2,
+      "damping": 25.24,
+      "mass": 1
+    },
+    "sheet": {
+      "responseMul": 0.9,
+      "response": 0.468,
+      "dampingFraction": 0.86,
+      "stiffness": 180.2,
+      "damping": 23.09,
+      "mass": 1
+    },
+    "clear": {
+      "responseMul": 0.55,
+      "response": 0.286,
+      "dampingFraction": 1,
+      "stiffness": 482.6,
+      "damping": 43.94,
+      "mass": 1
+    },
+    "rise": {
+      "responseMul": 0.95,
+      "response": 0.494,
+      "dampingFraction": 1,
+      "stiffness": 161.8,
+      "damping": 25.44,
+      "mass": 1
+    },
+    "form": {
+      "responseMul": 0.75,
+      "response": 0.39,
+      "dampingFraction": 0.68,
+      "stiffness": 259.6,
+      "damping": 21.91,
+      "mass": 1
+    },
+    "pop": {
+      "responseMul": 0.7,
+      "response": 0.364,
+      "dampingFraction": 0.62,
+      "stiffness": 298.0,
+      "damping": 21.4,
+      "mass": 1
+    },
+    "recede": {
+      "responseMul": 0.72,
+      "response": 0.374,
+      "dampingFraction": 1,
+      "stiffness": 281.6,
+      "damping": 33.56,
+      "mass": 1
+    },
+    "fade": {
+      "responseMul": 0.6,
+      "response": 0.312,
+      "dampingFraction": 1,
+      "stiffness": 405.6,
+      "damping": 40.28,
+      "mass": 1
+    },
+    "relaunch": {
+      "responseMul": 1.5,
+      "response": 0.78,
+      "dampingFraction": 1,
+      "stiffness": 64.9,
+      "damping": 16.11,
+      "mass": 1
+    },
+    "press": {
+      "responseMul": 0.34,
+      "response": 0.177,
+      "dampingFraction": 0.62,
+      "stiffness": 1263.0,
+      "damping": 44.07,
+      "mass": 1
+    }
+  },
+  "home": {
+    "stagger": 0.055,
+    "lead": 0.04,
+    "tileStagger": 0.035
+  },
+  "search": {
+    "keyboardDelay": 0.06,
+    "typeAfter": 0.52,
+    "suggestionStagger": 0.05,
+    "submit": {
+      "barFrom": {
+        "x": 16,
+        "y": 70,
+        "w": 343,
+        "h": 48
+      },
+      "barTo": {
+        "x": 12,
+        "y": 50.57,
+        "w": 351,
+        "h": 44
+      },
+      "transformOrigin": [
+        16,
+        70
+      ],
+      "overlayFadeDelay": 0.22
+    }
+  },
+  "results": {
+    "placeholdersFor": 0.6,
+    "chipsDelay": 0,
+    "gridDelay": 0.07,
+    "nudgeHold": 1.45,
+    "nudgeHoldFromSkeleton": 0.45,
+    "placeholderChips": [
+      75,
+      71,
+      97,
+      99,
+      108
+    ]
+  },
+  "inlineNudge": {
+    "plans": {
+      "PA": {
+        "sx": 0,
+        "swd": 0,
+        "geo": 0.03,
+        "lay": 0.1,
+        "drop": 0.16,
+        "iv": 0.34,
+        "wm": 0.36,
+        "txt": 0.4,
+        "nn": 0.5,
+        "sb": 0.57
+      },
+      "AB": {
+        "txt": 0,
+        "nn": 0.025,
+        "sb": 0.05,
+        "wm": 0,
+        "sx": 0,
+        "swd": 0,
+        "ic": 0.04,
+        "geo": 0.2,
+        "btn": 0.22,
+        "lay": 0.2
+      },
+      "BA": {
+        "btn": 0,
+        "geo": 0,
+        "lay": 0,
+        "ic": 0.16,
+        "sx": 0.32,
+        "swd": 0.32,
+        "wm": 0.1,
+        "txt": 0.15,
+        "nn": 0.19,
+        "sb": 0.23
+      },
+      "AC": {
+        "txt": 0,
+        "nn": 0.025,
+        "sb": 0.05,
+        "wm": 0,
+        "sx": 0,
+        "swd": 0,
+        "ic": 0.04,
+        "geo": 0.2,
+        "btn": 0.22,
+        "lay": 0.2
+      },
+      "PC": {
+        "sx": 0,
+        "swd": 0,
+        "btn": 0.11,
+        "iv": 0.21
+      }
+    },
+    "entranceOverrides": {
+      "nn": [
+        0.75,
+        0.68
+      ],
+      "sb": [
+        0.75,
+        0.68
+      ],
+      "iv": [
+        0.7,
+        0.62
+      ],
+      "txt": [
+        0.95,
+        1
+      ]
+    },
+    "iconPath": {
+      "P1": "(iconB.x+16, iconA.y+1)",
+      "P2": "(W+6, iconA.y+10)",
+      "overshootPxPerUnit": 140
+    },
+    "layout": {
+      "width": 351,
+      "searchInset": 10,
+      "searchTop": 10,
+      "searchTopB": 0,
+      "searchH": 44,
+      "gap": 8,
+      "cardH": 108,
+      "collapsedH": 44,
+      "iconA": [
+        26,
+        82
+      ]
+    },
+    "background": {
+      "fill": "linear-gradient(104.2deg, #F5FAFF 0.5%, #EBF4FF 76.3%)",
+      "halftone": {
+        "asset": "assets/halftone-nudge.png",
+        "size": [
+          351,
+          108
+        ],
+        "opacity": 0.3,
+        "blend": "plus-lighter"
+      },
+      "watermark": {
+        "asset": "assets/watermark.svg",
+        "at": [
+          99,
+          4.4
+        ],
+        "size": [
+          160,
+          104
+        ],
+        "restOpacity": 1
+      }
+    },
+    "shimmer": {
+      "startAfter": 0.8,
+      "duration": 1.5
+    }
+  },
+  "tooltipNudge": {
+    "layout": {
+      "card": {
+        "y": 58,
+        "h": 52,
+        "r": 16
+      },
+      "pointer": {
+        "tipX": 44,
+        "w": 18,
+        "h": 7
+      },
+      "tileA": {
+        "x": 25,
+        "y": 84,
+        "s": 32,
+        "r": 8
+      },
+      "tileB": {
+        "x": 329,
+        "y": 22,
+        "s": 44,
+        "r": 12
+      },
+      "searchB": 299
+    },
+    "plans": {
+      "PA": {
+        "nt": 0,
+        "lay": 0.02,
+        "uf": 0.07,
+        "drop": 0.12,
+        "iv": 0.3,
+        "wm": 0.32,
+        "txt": 0.36,
+        "nn": 0.46,
+        "sb": 0.53
+      },
+      "AB": {
+        "txt": 0,
+        "nn": 0.025,
+        "sb": 0.05,
+        "wm": 0,
+        "sx": 0,
+        "swd": 0,
+        "ic": 0.06,
+        "geo": 0.2,
+        "lay": 0.2
+      },
+      "BA": {
+        "geo": 0,
+        "lay": 0,
+        "ic": 0.12,
+        "sx": 0.32,
+        "swd": 0.32,
+        "wm": 0.12,
+        "txt": 0.16,
+        "nn": 0.2,
+        "sb": 0.24
+      },
+      "AC": {
+        "recede": 0,
+        "lay": 0.07,
+        "parkTileAt": 0.3,
+        "glyphPop": 0.08
+      },
+      "PC": {
+        "sx": 0,
+        "swd": 0,
+        "iv": 0.12
+      }
+    },
+    "tilePath": {
+      "P0": [
+        25,
+        84
+      ],
+      "P1": [
+        250,
+        83
+      ],
+      "P2": [
+        370,
+        95
+      ],
+      "P3": [
+        329,
+        22
+      ],
+      "overshootPxPerUnit": 80,
+      "growFrom": 0.8
+    },
+    "recede": {
+      "opacity": "1-1.1d",
+      "translateY": "-6d",
+      "scale": "1→0.94",
+      "blur": "3d px",
+      "origin": [
+        44,
+        51
+      ]
+    },
+    "shimmer": {
+      "startAfter": 0.95,
+      "duration": 2.4,
+      "peakOpacity": 0.6
+    }
+  },
+  "sheet": {
+    "dockTravel": 341,
+    "commitShare": 0.35,
+    "projectionDecel": 0.998,
+    "background": {
+      "fill": "#F2F3F7",
+      "halftone": {
+        "asset": "assets/halftone-sheet.png",
+        "size": [
+          351,
+          120
+        ],
+        "opacity": 0.28,
+        "fadeIn": {
+          "delay": 0.3,
+          "duration": 1.2
+        },
+        "breathe": {
+          "to": 0.4,
+          "drift": [
+            6,
+            2
+          ],
+          "period": 7
+        }
+      }
+    },
+    "arabic": {
+      "height": 296,
+      "titleLineHeight": 28
+    }
+  },
+  "relaunch": {
+    "handoffAfterSheet": 0.16,
+    "letGo": {
+      "opacity": 0,
+      "blur": 6,
+      "scale": 0.985
+    },
+    "clips": {
+      "toArabic": {
+        "asset": "assets/hala-morph.mp4",
+        "cut": 2.35
+      },
+      "toEnglish": {
+        "asset": "assets/hala-morph-back.mp4",
+        "cut": 2.4
+      }
+    },
+    "skeletonHold": 1.6
+  },
+  "arabicLanding": {
+    "slotOpen": {
+      "to": 52,
+      "delay": 0.55
+    },
+    "surface": {
+      "from": 0.35,
+      "delay": 0.68
+    },
+    "glyph": {
+      "delay": 0.78
+    }
+  },
+  "overscroll": {
+    "dimension": 110,
+    "coefficient": 0.55,
+    "wheelDamping": 0.25,
+    "ignoreMomentumAfterReleaseMs": 450
+  },
+  "scroll": {
+    "trigger": 48,
+    "reopenBelow": "min(trigger*0.35, 16)"
+  },
+  "conformance": {
+    "fps": 60,
+    "tolerance": {
+      "progress": 0.015,
+      "px": 0.75
+    },
+    "startLatencyFrames": 2,
+    "samplingJitterFrames": 1
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "language-nudge-motion-handoff",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "goldens": "tsx tools/goldens.ts",
+    "compare": "tsx tools/compare-trace.ts"
+  },
+  "devDependencies": { "tsx": "^4.19.0", "typescript": "^5.5.0", "motion": "^11.0.0" }
+}
