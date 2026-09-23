@@ -10,7 +10,10 @@ export type Channel =
   | 'geo' | 'drop' | 'sx' | 'swd' | 'ic' | 'iv' | 'btn' | 'lay' | 'txt' | 'nn' | 'sb' | 'wm';
 export type Values = Record<Channel, number>;
 
-export const BASE = { response: 0.52, dampingFraction: 0.9 };
+// Damping 0.92, up from the handoff's approved 0.90 at the user's call: a touch
+// less overshoot everywhere. Every channel is a multiple of this, so the whole
+// flow — nudge, tooltip, search bar, sheet — retunes from here.
+export const BASE = { response: 0.52, dampingFraction: 0.92 };
 
 export interface SpringCfg { response: number; dampingFraction: number; mass: 1; stiffness: number; damping: number }
 export const spring = (response: number, dampingFraction: number): SpringCfg => ({
@@ -143,6 +146,16 @@ export const PLANS: Record<string, Partial<Record<Channel, number>>> = {
   // B and C rest identically, so these carry no visible change.
   BC: {},
   CB: {},
+  // RECEDE (the collapse-style toggle). P is this repo's name for the spec's
+  // buttonless dismissed state, so these are the spec's own C beats, verbatim:
+  // A → P is SPEC §6 "A → C dismiss" (copy clears, the icon fades in place,
+  // the card folds into the bar); P → B reuses PC above (the bar makes room,
+  // the button forms, the glyph pops onto it); B/C → P is SPEC §6 "B → C" (the
+  // glyph goes, the search grows into the button's space).
+  AP: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, iv: 0, geo: 0.03, sx: 0.06, swd: 0.06, lay: 0.08 },
+  PB: { sx: 0, swd: 0, btn: 0.11, iv: 0.21 },
+  BP: { btn: 0, iv: 0, sx: 0.04, swd: 0.04 },
+  CP: { btn: 0, iv: 0, sx: 0.04, swd: 0.04 },
 };
 
 /**

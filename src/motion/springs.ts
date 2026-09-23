@@ -6,7 +6,7 @@ import { BASE, spring as solve } from "./nudge-core";
  * One motion system for the whole flow — the nudge's.
  *
  * Every animation in the prototype is a spring derived from ONE base
- * (response 0.52 s, damping fraction 0.90), exactly as the nudge's twelve
+ * (response 0.52 s, damping fraction 0.92), exactly as the nudge's twelve
  * channels are (`nudge-core.ts → channelSprings`). Nothing runs on a duration
  * and a curve any more, so:
  *

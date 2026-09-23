@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useCollapseStyle } from "../flow/collapseStyle";
 import { useAnimationFrame } from "motion/react";
 
 import { SearchBar } from "./SearchBar";
@@ -113,7 +114,48 @@ export function NudgeHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
   const probe = useRef<HTMLDivElement>(null);
   const showProbe = useMemo(() => new URLSearchParams(location.search).has("ac"), []);
 
-  useEffect(() => { m.go(state); }, [state, m]);
+  // Recede is composed from states this header already has, not new motion.
+  // P (the bar alone, full width) is the spec's buttonless dismissed state:
+  //   out  A → P → B|C  the nudge disappears into the bar, then the bar makes
+  //                     room and the glyph comes in at its side;
+  //   back B → P → A    the glyph goes and the bar takes its space, then the
+  //                     nudge blooms back on the arrival entrance.
+  // Holds leave the icon invisible (iv < .05) at each hand-over, so the
+  // pre-snaps that move it between the row and the slot are never seen.
+  const style = useCollapseStyle();
+  const last = useRef<StateId>(state);
+  const seq = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    const from = last.current;
+    // `m` is a fresh object every render and this header re-renders mid-motion
+    // (it reports its height as it changes), so the effect re-runs with the same
+    // state. The old one-liner shrugged that off — go() is a no-op to the
+    // current state — but a timed sequence is not, and a re-run jumped straight
+    // to the last step before the icon had faded. Only a real change counts.
+    if (from === state) return;
+    clearTimeout(seq.current);
+    last.current = state;
+    const hold = (sec: number) => (sec * BASE.response / 0.52) * 1000;
+    if (style === "recede" && from === "A" && (state === "B" || state === "C")) {
+      m.go("P");
+      seq.current = setTimeout(() => m.go(state), hold(0.3));
+      return;
+    }
+    if (style === "recede" && from === "B" && state === "A") {
+      m.go("P");
+      // P rests the glyph back in the row, so going there would slide it along
+      // its path as it fades. Pin it to the slot instead: it goes out where it
+      // sits, and the arrival's pre-snap moves it while it is invisible.
+      m.values.ic.jump(m.values.ic.get());
+      seq.current = setTimeout(() => {
+        m.go("A");
+        m.sheenStart.current = null; // the shimmer is the first arrival's, once
+      }, hold(0.28));
+      return;
+    }
+    m.go(state);
+  }, [state, m, style]);
+  useEffect(() => () => clearTimeout(seq.current), []);
 
   const apply = useCallback(() => {
     const v = m.read();

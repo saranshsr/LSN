@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useAnimationFrame } from "motion/react";
 
 import { SearchBar } from "./SearchBar";
+import { useCollapseStyle } from "../flow/collapseStyle";
 import { Icon } from "../icons/Icon";
 import { QUERY, nudge } from "../data/copy";
 import { useChannels } from "../motion/useChannels";
@@ -28,13 +29,14 @@ import type { StateId } from "../motion/nudge-core";
  */
 import {
   W, GAP, BTNX, NOTCH, R, STAGE_Y, STAGE_X, PAD_B, clamp, lerp,
-  SPRINGS, ENTRANCE, STATES, PLANS, SHEEN, tooltipGeom, type K,
+  SPRINGS, ENTRANCE, HIDDEN_COPY, STATES, PLANS, SHEEN, tooltipGeom, type K,
 } from "../motion/tooltip-core";
 const WORDS = [...nudge.tooltipLead.split(" "), nudge.tooltipLang];
 
 type Props = { state: StateId; onSwitch: () => void; onDismiss: () => void; onHeight?: (h: number) => void };
 
 export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
+  const style = useCollapseStyle();
   const ch = useChannels<K>({ ...STATES.P, ic: 0 } as Record<K, number>);
   const cur = useRef<StateId>("P");
   const entering = useRef(false);
@@ -58,13 +60,37 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
     entering.current = to === "A" && (from === "P" || from === "C");
     sheenStart.current = entering.current && !ch.reduced ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
 
+    // Recede (the original tooltip dismiss): step back as one layer toward
+    // the pointer while the layout gives the space back — then, invisibly, fold
+    // the tooltip away and park the glyph in the header slot, and bring it in
+    // from the side as the bar makes room for it. B and C share these values.
+    const recedeOut = () => {
+      ch.to({ dm: 1, lay: 1 }, { lay: 0.07 }, spr);
+      ch.later(0.3, () => {
+        ch.snap({ geo: 1, uf: 0, drop: 0, nt: 0, ic: 1, iv: 0, dm: 0, ...HIDDEN_COPY });
+        ch.to({ sx: 0, swd: BTNX - GAP, iv: 1 }, { iv: 0.08 }, (k) => (k === "iv" ? SPR.pop : SPRINGS[k]));
+      });
+    };
     if (to === "C" && from === "A") {
-      // "Not now" plays exactly what scrolling plays (plan AB): the copy clears,
-      // the card folds into the bar and the glyph TRAVELS along its path into
-      // the header button — the same object moving to where it lives from now
-      // on, rather than the tooltip fading out and a new glyph popping in. The
-      // end state is B's; C differs only in that scrolling no longer reopens it.
+      if (style === "recede") { recedeOut(); return; }
+      // Travel: "Not now" plays exactly what scrolling plays (plan AB) — the
+      // copy clears, the card folds into the bar and the glyph TRAVELS along its
+      // path into the header button. The end state is B's; C differs only in
+      // that scrolling no longer reopens it.
       ch.to(STATES.C, PLANS.AB, spr);
+      return;
+    }
+    if (style === "recede" && from === "A" && to === "B") { recedeOut(); return; }
+    if (style === "recede" && from === "B" && to === "A") {
+      // Back: the glyph pops out and the bar takes its space, then the tooltip
+      // blooms back from under the bar on its entrance — without the shimmer,
+      // which belongs to the first arrival only.
+      ch.to({ iv: 0, sx: 0, swd: W }, { swd: 0.04 }, (k) => SPRINGS[k]);
+      ch.later(0.28, () => {
+        entering.current = true;
+        ch.snap({ geo: 0, uf: 0, drop: 0, nt: 0, dm: 0, ic: 0, iv: 0 });
+        ch.to(STATES.A, PLANS.CA, spr);
+      });
       return;
     }
     if (from === "P" && to === "C") {
@@ -80,7 +106,7 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
       ch.snap({ ic: STATES[to].ic ?? 0 });
     }
     ch.to(STATES[to], PLANS[from + to] ?? {}, spr);
-  }, [state, ch]);
+  }, [state, ch, style]);
 
   const apply = () => {
     const v = ch.read();

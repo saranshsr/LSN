@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { Lane, SoloDevice } from "./shell/Lane";
+import { CollapseStyleContext, collapseStyleFromUrl, type CollapseStyle } from "./flow/collapseStyle";
 import type { StepId, Variant } from "./flow/flow";
 
 const SOURCE = "figma.com/design/JovVwactrtpNkNSPfu4tsm · section 278:110006 “flow”";
@@ -22,7 +25,28 @@ function solo() {
   return { variant, beat: (q.get("beat") ?? "home") as StepId, slow, collapseAt, live: false };
 }
 
+const STYLES: { id: CollapseStyle; label: string; hint: string }[] = [
+  { id: "travel", label: "Travel", hint: "The glyph flies along its path into the bar." },
+  { id: "recede", label: "Recede", hint: "The nudge steps back and is gone; the glyph comes in from the side." },
+];
+
 export default function App() {
+  const [style, setStyle] = useState<CollapseStyle>(collapseStyleFromUrl);
+  const pick = (s: CollapseStyle) => {
+    setStyle(s);
+    // Keep it in the link, so a shared URL opens on the same style.
+    const u = new URL(location.href);
+    if (s === "recede") u.searchParams.set("collapse", "recede"); else u.searchParams.delete("collapse");
+    history.replaceState(null, "", u);
+  };
+  return (
+    <CollapseStyleContext.Provider value={style}>
+      <Page style={style} pick={pick} />
+    </CollapseStyleContext.Provider>
+  );
+}
+
+function Page({ style, pick }: { style: CollapseStyle; pick: (s: CollapseStyle) => void }) {
   const only = solo();
   if (only) {
     // `?slow=6` stretches the motion tokens for frame-by-frame inspection.
@@ -53,6 +77,19 @@ export default function App() {
           Motion runs on the Field DS curves and durations; the grid and the chips deliberately do not
           animate.
         </p>
+        {/* Applies to both phones: the scroll collapse, and the tooltip's "Not now". */}
+        <div className="shell-toggle" role="radiogroup" aria-label="How the nudge collapses">
+          <span className="shell-toggle-label">Collapse</span>
+          <div className="seg">
+            {STYLES.map((s) => (
+              <button key={s.id} type="button" role="radio" aria-checked={style === s.id}
+                className="seg-opt" data-on={style === s.id || undefined} onClick={() => pick(s.id)}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <span className="shell-toggle-hint">{STYLES.find((s) => s.id === style)?.hint}</span>
+        </div>
       </header>
 
       <div className="stage">
