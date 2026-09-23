@@ -46,7 +46,13 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
   const [mounted, setMounted] = useState(!wantsEntrance);
   useEffect(() => {
     if (mounted) return;
-    const t = setTimeout(() => setMounted(true), at(settling ? 0.45 : 0.9) * 1000);
+    const t = setTimeout(() => {
+      // Edge case: the user scrolled past the trigger during the hold. Don't
+      // bloom a nudge they have already moved on from — arrive collapsed, as
+      // the glyph settling into its slot.
+      if (!settling && (scroller.current?.scrollTop ?? 0) > SCROLL.trigger) onCollapse(true);
+      setMounted(true);
+    }, at(settling ? 0.45 : 0.9) * 1000);
     return () => clearTimeout(t);
   }, [mounted, settling]);
 
