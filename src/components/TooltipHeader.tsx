@@ -117,6 +117,12 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
       });
       return;
     }
+    if (from === "P" && to === "C") {
+      // Back in English: the bar makes room and the glyph pops into its slot.
+      ch.snap({ ic: 1, iv: 0 });
+      ch.to({ sx: 0, swd: BTNX - GAP, iv: 1 }, { iv: 0.12 }, (k) => (k === "iv" ? SPR.pop : SPRINGS[k]));
+      return;
+    }
     if (entering.current) {
       // The card is hidden inside the bar: reshape it into a sliver under the pointer.
       ch.snap({ geo: 0, uf: 0, drop: 0, nt: 0, dm: 0, ic: 0, iv: 0 });

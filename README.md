@@ -41,7 +41,7 @@ Everything is driven by query params on the one page.
 
 Beats, in order:
 
-`home · search · offered · collapsed · sheet · transition · skeleton · switched`
+`home · search · offered · collapsed · sheet · transition · skeleton · switched · backsheet · back`
 
 ## Self-contained by design
 
@@ -125,7 +125,7 @@ frame export:
   --screenshot=offered.png "http://localhost:5180/?solo=inline&beat=offered"
 ```
 
-Beats: `home · search · offered · collapsed · sheet · transition · skeleton · switched`
+Beats: `home · search · offered · collapsed · sheet · transition · skeleton · switched · backsheet · back`
 (also listed under **URL modes** above).
 
 Two more params for inspecting motion, since the Claude browser pane throttles
@@ -209,10 +209,12 @@ containers settle before content forms, and delays scale with the base.
 | Nudge arrives | About 0.9 s after landing, the nudge blooms out of the bar — so it reads as something that has just come up. Inline: per `docs/motion-handoff/SPEC.md`. Tooltip: the pointer slips out from under the bar, the card unfolds from it, the tile pops, words rise, pills form, one slow band of light |
 | Nudge (tooltip) collapse | The bar makes room, the tile slides along its own row and curves up into the slot — becoming the button — then the card retracts into the bar |
 | Nudge (tooltip) dismiss | The tooltip recedes toward its pointer as one layer; then the bar makes room and the glyph pops in (dismiss ≠ never, as inline) |
-| Sheet | Docks on `sheet`; glyph pops, title words rise, body rises, buttons settle in. Leaves on `recede`, carrying the drag's release velocity |
+| Sheet dock | Docks on `sheet`; leaves on `recede`, carrying the drag's release velocity |
 | Confirm → relaunch | No burst. The English screen softly lets go — dims, blurs a little, settles back to 98.5% — while the Hala → هلا clip fades up on `relaunch`, a long critically damped fade |
 | Relaunch → skeleton → Arabic | Slow cross-fades. The language flips behind the clip, never on a visible screen. The skeleton's own sweep is unchanged (measured off the real app) |
 | Arabic lands | The user sees the full-width bar where the skeleton's bar was, then the nudge settles into its contracted form: the bar makes room on the left (RTL) and the glyph pops into the slot |
+| The way back | The glyph on the Arabic bar opens the same sheet in Arabic, with an English line under the title. Switching runs the relaunch the other way on the real app's Arabic → English recording (cut at 2.40 s, the frame its wordmark finishes fading), and English lands with the full bar before the glyph settles into its slot on the right |
+| Sheet | The copy does not animate — it is what the user reads and decides on. The background does: three soft pools of the brand blues drift slowly behind the glyph |
 
 **Deliberately not animated:** the product grid and chips, except for their one
 arrival from search. From the skeleton they must not move — placeholder and

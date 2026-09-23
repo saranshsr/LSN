@@ -551,11 +551,51 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .sheet-body b { font-weight: 700; color: var(--colour-text-n-icon-secondary); }
 .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 17px 16px 16px; }
-/* Wrappers the sheet's content forms on (Sheet.tsx) — layout-neutral. */
-.sheet-action { display: grid; }
-.sheet-action > .btn-lg { width: 100%; }
-.sheet-glyph { display: inline-flex; }
-.sheet-word { display: inline-block; white-space: pre; }
+/* Content sits above the drifting background. */
+.sheet > :not(.sheet-aura) { position: relative; z-index: 1; }
+
+/* The Arabic sheet: same frame, 16pt taller for the English lifeline under the
+   title, and Arabic set a touch looser — Noto's ascenders need the room. */
+.sheet--ar { height: 296px; }
+.sheet--ar .sheet-title { line-height: 28px; letter-spacing: 0; margin-top: -4px; }
+.sheet--ar .sheet-body { letter-spacing: 0; }
+.sheet-gloss {
+  margin-top: 2px; text-align: center;
+  font-size: 12px; line-height: 16px; font-weight: 500;
+  color: var(--colour-text-n-icon-tertiary);
+}
+
+/* Ambient background: three soft pools of the brand blues drifting slowly
+   behind the glyph, faded out before the copy. A continuous loop is the one
+   job CSS keeps — there is no gesture or target for a spring here. It fades
+   in once the sheet has docked, and is off under reduced motion. */
+.sheet-aura {
+  position: absolute; inset: 0 0 auto 0; height: 150px; z-index: 0; pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent);
+          mask-image: linear-gradient(180deg, #000 45%, transparent);
+  animation: aura-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+.sheet-aura i { position: absolute; border-radius: 50%; }
+.sheet-aura i:nth-child(1) {
+  width: 220px; height: 150px; left: 20px; top: -40px;
+  background: radial-gradient(closest-side, rgba(92, 134, 255, 0.28), transparent);
+  animation: aura-a 9s ease-in-out infinite alternate;
+}
+.sheet-aura i:nth-child(2) {
+  width: 200px; height: 140px; right: 10px; top: -30px;
+  background: radial-gradient(closest-side, rgba(150, 120, 255, 0.2), transparent);
+  animation: aura-b 11s ease-in-out infinite alternate;
+}
+.sheet-aura i:nth-child(3) {
+  width: 260px; height: 120px; left: 50px; top: 20px;
+  background: radial-gradient(closest-side, rgba(110, 196, 255, 0.22), transparent);
+  animation: aura-c 13s ease-in-out infinite alternate;
+}
+@keyframes aura-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes aura-a { from { transform: translate(-18px, 0) scale(1); } to { transform: translate(46px, 14px) scale(1.12); } }
+@keyframes aura-b { from { transform: translate(20px, 8px) scale(1.08); } to { transform: translate(-50px, -6px) scale(0.95); } }
+@keyframes aura-c { from { transform: translate(24px, 6px) scale(0.96); } to { transform: translate(-30px, -10px) scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .sheet-aura i { animation: none; } }
 .btn-lg { height: 48px; border-radius: 12px; font-size: 15px; font-weight: 600; }
 .btn-lg--secondary { background: var(--colour-surface-primary); }
 .btn-lg--primary { background: var(--colour-surface-secondary-inverted); color: var(--colour-text-n-icon-on-surface-bold); }

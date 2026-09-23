@@ -39,13 +39,16 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
   // The user lands on the plain, full-width bar (P) while the results rise in;
   // only once that has settled does the nudge bloom out of the bar — so it
   // reads as something that has just come up, and grabs attention for it.
-  const wantsEntrance = locale === "en" && state === "offered";
+  // Coming back to English after the round trip, the same beat plays in
+  // reverse of the Arabic landing: full bar first, then the glyph settles in.
+  const settling = locale === "en" && entrance === "skeleton";
+  const wantsEntrance = locale === "en" && (state === "offered" || settling);
   const [mounted, setMounted] = useState(!wantsEntrance);
   useEffect(() => {
     if (mounted) return;
-    const t = setTimeout(() => setMounted(true), at(0.9) * 1000);
+    const t = setTimeout(() => setMounted(true), at(settling ? 0.45 : 0.9) * 1000);
     return () => clearTimeout(t);
-  }, [mounted]);
+  }, [mounted, settling]);
 
   const nudgeState: StateId = mounted ? AS_STATE[state] : "P";
 
@@ -81,7 +84,7 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
       <StatusBar />
 
       {locale === "ar" ? (
-        <ArHeader settle={entrance === "skeleton"} />
+        <ArHeader settle={entrance === "skeleton"} onSwitch={onSwitch} />
       ) : variant === "inline" ? (
         <NudgeHeader state={nudgeState} onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       ) : (

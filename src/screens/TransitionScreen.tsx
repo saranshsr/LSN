@@ -1,9 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { StatusBar } from "../components/chrome";
+import type { Locale } from "../data/copy";
 
-/** Safety net: if autoplay is blocked, don't strand the flow on a still frame. */
-const CLIP_MS = 2350;
 
 /**
  * The beat that covers the relaunch — the shipped app's own Hala → هلا
@@ -17,27 +16,39 @@ const CLIP_MS = 2350;
  * Our status bar is drawn over the recording's, which carries the capture's
  * own clock, Dynamic Island and battery.
  */
-export function TransitionScreen({ onDone }: { onDone: () => void }) {
+/** Each direction has its own recording of the shipped app's wordmark morph,
+ *  both cut at the frame the wordmark finishes fading (2.35 s and 2.40 s). */
+const CLIPS: Record<Locale, { src: string; ms: number }> = {
+  ar: { src: "/media/hala-morph.mp4", ms: 2350 },
+  en: { src: "/media/hala-morph-back.mp4", ms: 2400 },
+};
+
+export function TransitionScreen({ to, onDone }: { to: Locale; onDone: () => void }) {
+  const clip = CLIPS[to];
   const video = useRef<HTMLVideoElement>(null);
   const done = useRef(false);
+
+  // Latest callback in a ref, so a re-render can never restart the clip timer.
+  const cb = useRef(onDone);
+  cb.current = onDone;
 
   useEffect(() => {
     const finish = () => {
       if (done.current) return;
       done.current = true;
-      onDone();
+      cb.current();
     };
     video.current?.play().catch(() => {});
-    const t = setTimeout(finish, CLIP_MS);
+    const t = setTimeout(finish, clip.ms);
     return () => clearTimeout(t);
-  }, [onDone]);
+  }, [clip.ms]);
 
   return (
     <div className="screen screen--transition">
       <video
         ref={video}
         className="transition-video"
-        src="/media/hala-morph.mp4"
+        src={clip.src}
         muted
         playsInline
         preload="auto"

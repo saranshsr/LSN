@@ -136,6 +136,10 @@ export const PLANS: Record<string, Partial<Record<Channel, number>>> = {
   // The arrival: the bar insets, the card blooms out from behind it and drops
   // open, then the icon pops and the copy forms (SPEC §6.1).
   PA: { sx: 0, swd: 0, geo: 0.03, lay: 0.1, drop: 0.16, iv: 0.34, wm: 0.36, txt: 0.4, nn: 0.5, sb: 0.57 },
+  // Back in English after the round trip: the bar makes room, the glyph's
+  // button forms in the slot and the glyph pops onto it — the nudge settling
+  // into its contracted form, mirror of the Arabic landing.
+  PC: { sx: 0, swd: 0, btn: 0.11, iv: 0.21 },
   // B and C rest identically, so these carry no visible change.
   BC: {},
   CB: {},
@@ -150,6 +154,7 @@ export function preSnaps(from: StateId, to: StateId, v: Values, L: Layout): Part
   const t = stateTargets(L)[to], out: Partial<Values> = {};
   if (to !== 'C' && v.iv < 0.05 && t.ic !== undefined) out.ic = t.ic;
   if ((from === 'C' || from === 'P') && to === 'A' && v.geo > 0.98) out.drop = 1;
+  if (from === 'P' && to === 'C') out.ic = 1; // the glyph appears in its slot, not in the row
   return out;
 }
 

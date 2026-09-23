@@ -13,10 +13,12 @@ import { SPR, at } from "../motion/springs";
  * slot, on the left, because the layout is now RTL. It says "this is where the
  * language lives now" — and it is the way back to English.
  *
+ * Tapping it opens the Arabic sheet, and switching runs the relaunch back.
+ *
  * NOTE: the 23 Sep Figma component (278:68265) removed this glyph. Adding it
  * back here is the designer's call from the 24 Sep review (DIVERGENCES #11).
  */
-export function ArHeader({ settle }: { settle: boolean }) {
+export function ArHeader({ settle, onSwitch }: { settle: boolean; onSwitch: () => void }) {
   const initial = settle ? "hidden" : false;
   return (
     <header className="plp-header plp-header--plain plp-header--ar">
@@ -49,7 +51,7 @@ export function ArHeader({ settle }: { settle: boolean }) {
                 shown: { opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...SPR.pop, delay: at(0.78) } },
               }}
             >
-              <button className="glyph-btn glyph-btn--standalone" aria-label={nudge.label}>
+              <button className="glyph-btn glyph-btn--standalone" aria-label={nudge.label} onClick={onSwitch}>
                 <Icon name="system-language" size={20} />
               </button>
             </motion.span>

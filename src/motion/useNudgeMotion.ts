@@ -72,7 +72,9 @@ export function useNudgeMotion(L: Layout, initial: StateId): NudgeMotion {
 
       // Invisible pre-snaps, so nothing is ever seen jumping (SPEC §6).
       const snaps = preSnaps(from, to, read(), L);
-      for (const [c, v] of Object.entries(snaps)) values[c as Channel].set(v as number);
+      // `jump`, not `set`: set() infers a velocity from the instant change, and the
+      // next spring would inherit it and fling the value past its target.
+      for (const [c, v] of Object.entries(snaps)) values[c as Channel].jump(v as number);
 
       const plan = PLANS[`${from}${to}`] ?? {};
       const target = targets[to];
@@ -85,7 +87,9 @@ export function useNudgeMotion(L: Layout, initial: StateId): NudgeMotion {
 
         if (reduced) { mv.set(want); continue; }
 
-        const cfg = (isEntrance && overrides[c]) || springs[c];
+        // Settling into the contracted form (P → C): the button and glyph pop.
+        const settle = from === "P" && to === "C" && (c === "btn" || c === "iv") ? overrides.iv : undefined;
+        const cfg = (isEntrance && overrides[c]) || settle || springs[c];
         animate(mv, want, {
           type: "spring",
           mass: 1,

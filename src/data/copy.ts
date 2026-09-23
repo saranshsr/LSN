@@ -43,6 +43,24 @@ export const sheet = {
   action: "Switch",
 };
 
+/**
+ * The way back — the same sheet, in Arabic, opened from the glyph on the
+ * switched screen. Structure mirrors the English sheet line for line.
+ * An English line sits under the title on purpose: the person most likely to
+ * tap this is someone who switched by mistake and cannot read Arabic, so the
+ * one thing they must be able to read is what this sheet does.
+ */
+export const sheetAr = {
+  // "Switch the app to English?"
+  title: "تغيير لغة التطبيق إلى الإنجليزية؟",
+  gloss: "Switch the app to English?",
+  // "This will change the app's language & layout. You can always switch back from Account"
+  body: "سيؤدي هذا إلى تغيير لغة التطبيق وتصميمه. يمكنك العودة في أي وقت من الحساب",
+  bodyEmphasis: "الحساب", // "Account"
+  cancel: "إلغاء", // "Cancel"
+  action: "تبديل", // "Switch"
+};
+
 /** The splash that covers the reload. Latin letters in the frame, not هلا. */
 export const splash = { greeting: "Hala" };
 

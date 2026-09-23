@@ -27,7 +27,7 @@ export function SearchBar({ query, placeholder, back, caret, typing, bare, heigh
   const caretFirst = caret && query !== undefined && (hasArabic(query) || query === "");
   const bar = <span className="searchbar-caret" data-typing={!!typing} />;
   return (
-    <div className={bare ? "searchbar searchbar--bare" : "searchbar"} style={{ height }} onClick={onClick} role={onClick ? "button" : undefined}>
+    <div className={bare ? "searchbar searchbar--bare" : "searchbar"} style={bare ? undefined : { height }} onClick={onClick} role={onClick ? "button" : undefined}>
       {back
         ? <Icon name="system-chevron-left" size={20} className="searchbar-icon searchbar-icon--back" />
         : <Icon name="system-search" size={20} className="searchbar-icon" />}

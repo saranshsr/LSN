@@ -95,7 +95,15 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
       case "transition":
         // The language flips here, behind the relaunch clip — never on a screen
         // the user can still see, which would mirror it mid-fade.
-        return <TransitionScreen onDone={() => patch({ screen: "skeleton", locale: "ar", nudge: "dismissed" })} />;
+        return (
+          <TransitionScreen
+            to={state.switchTo ?? "ar"}
+            onDone={() => {
+              const to = state.switchTo ?? "ar";
+              patch({ screen: "skeleton", locale: to, nudge: "dismissed", returned: to === "en" });
+            }}
+          />
+        );
       case "skeleton":
         return <SkeletonScreen />;
       case "results":
@@ -136,10 +144,13 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
 
       <ConfirmSheet
         open={state.sheetOpen}
+        locale={state.locale}
         onCancel={() => patch({ sheetOpen: false })}
         onConfirm={() => {
           patch({ sheetOpen: false });
-          setTimeout(() => patch({ screen: "transition" }), HANDOFF_MS);
+          // The sheet always offers the OTHER language.
+          const to = state.locale === "ar" ? "en" : "ar";
+          setTimeout(() => patch({ screen: "transition", switchTo: to }), HANDOFF_MS);
         }}
       />
     </div>

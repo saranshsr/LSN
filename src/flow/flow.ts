@@ -21,6 +21,10 @@ export type FlowState = {
   locale: Locale;
   nudge: NudgeState;
   sheetOpen: boolean;
+  /** Where a relaunch in flight is heading. */
+  switchTo?: Locale;
+  /** Came back to English from Arabic — the round trip is complete. */
+  returned?: boolean;
 };
 
 export const initialState: FlowState = {
@@ -40,6 +44,9 @@ export const STEPS = [
   { id: "transition", label: "Hala → هلا", node: "278:109973" },
   { id: "skeleton", label: "Loading", node: "" },
   { id: "switched", label: "Arabic PLP", node: "278:67831" },
+  // The way back — not in the Figma section; designed in review.
+  { id: "backsheet", label: "Switch back", node: "" },
+  { id: "back", label: "English again", node: "" },
 ] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
@@ -48,9 +55,9 @@ export type StepId = (typeof STEPS)[number]["id"];
 export function stepOf(s: FlowState): StepId {
   if (s.screen === "home") return "home";
   if (s.screen === "search") return "search";
-  if (s.screen === "transition") return "transition";
-  if (s.screen === "skeleton") return "skeleton";
-  if (s.locale === "ar") return "switched";
+  if (s.screen === "transition" || s.screen === "skeleton") return s.switchTo === "en" ? "back" : s.screen;
+  if (s.locale === "ar") return s.sheetOpen ? "backsheet" : "switched";
+  if (s.returned) return "back";
   if (s.sheetOpen) return "sheet";
   return s.nudge === "offered" ? "offered" : "collapsed";
 }
@@ -67,4 +74,6 @@ export const stateForStep: Record<StepId, FlowState> = {
   transition: { screen: "transition", locale: "ar", nudge: "dismissed", sheetOpen: false },
   skeleton: { screen: "skeleton", locale: "ar", nudge: "dismissed", sheetOpen: false },
   switched: { screen: "results", locale: "ar", nudge: "dismissed", sheetOpen: false },
+  backsheet: { screen: "results", locale: "ar", nudge: "dismissed", sheetOpen: true },
+  back: { screen: "results", locale: "en", nudge: "dismissed", sheetOpen: false, returned: true },
 };
