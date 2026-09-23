@@ -1,3 +1,4 @@
+import { traceStart } from "./trace";
 import { useCallback, useMemo, useRef } from "react";
 import { animate, useMotionValue, useReducedMotion, type MotionValue } from "motion/react";
 
@@ -65,6 +66,7 @@ export function useNudgeMotion(L: Layout, initial: StateId): NudgeMotion {
       const from = stateRef.current;
       if (from === to) return;
       stateRef.current = to;
+      traceStart("inline", from, to);
 
       const isEntrance = (from === "C" || from === "P") && to === "A";
       entering.current = isEntrance;

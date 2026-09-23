@@ -3,6 +3,7 @@ import { useAnimationFrame } from "motion/react";
 
 import { SearchBar } from "./SearchBar";
 import { Icon } from "../icons/Icon";
+import { traceFrame } from "../motion/trace";
 import { QUERY, nudge } from "../data/copy";
 import { useNudgeMotion } from "../motion/useNudgeMotion";
 import {
@@ -116,6 +117,7 @@ export function NudgeHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
 
   const apply = useCallback(() => {
     const v = m.read();
+    traceFrame("inline", v);
     const g = geom(v, m.entering.current);
 
     const el = (r: React.RefObject<HTMLElement | null>) => r.current;
