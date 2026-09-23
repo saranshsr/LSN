@@ -47,7 +47,8 @@ const letGo = { ...fadeIn, gone: { opacity: 0, scale: 0.985, filter: "blur(6px)"
 const fadeUp = { hidden: { opacity: 0 }, shown: { opacity: 1, transition: RELAUNCH }, gone: { opacity: 0, transition: RELAUNCH } };
 const SCREEN_ANIM = {
   home:       { variants: fadeIn, initial: "hidden" },
-  search:     { variants: { ...fadeIn, gone: { opacity: 0, transition: { ...SPR.fade, delay: at(0.1) } } }, initial: "hidden" },
+  // Holds until its bar has travelled into the results header (SearchScreen).
+  search:     { variants: { ...fadeIn, gone: { opacity: 0, transition: { ...SPR.fade, delay: at(0.22) } } }, initial: "hidden" },
   results:    { variants: letGo, initial: "hidden" },
   transition: { variants: fadeUp, initial: "hidden" },
   skeleton:   { variants: fadeUp, initial: "hidden" },

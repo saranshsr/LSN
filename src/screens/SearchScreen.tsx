@@ -6,6 +6,18 @@ import { SearchBar } from "../components/SearchBar";
 import { Keyboard } from "../components/Keyboard";
 import { Icon } from "../icons/Icon";
 import { SPR, rise, stagger } from "../motion/springs";
+
+/**
+ * Submitting: the bar is the thread the user follows. It travels from the
+ * overlay (x16 y70, 343 × 48) into exactly where the results header's bar sits
+ * (x12 y50.57, 351 × 44) on `move`, while the keyboard drops and the
+ * suggestions clear. The results screen fades up underneath with its own bar
+ * in that same spot, so the hand-off is invisible — one bar, settling.
+ */
+const toHeader = {
+  gone: { x: -4, y: -19.43, scaleX: 351 / 343, scaleY: 44 / 48, transition: SPR.move },
+};
+const clearList = { gone: { opacity: 0, y: -6, filter: "blur(3px)", transition: SPR.clear } };
 import { QUERY, SUGGESTIONS } from "../data/copy";
 
 /** Per character. Fast enough to read as typing, slow enough to watch. */
@@ -43,14 +55,14 @@ export function SearchScreen({ onSubmit }: { onSubmit: () => void }) {
   return (
     <div className="screen search-screen">
       <StatusBar />
-      <motion.div className="search-head" layoutId="searchbar" transition={{ layout: SPR.move }}>
+      <motion.div className="search-head" layoutId="searchbar" transition={{ layout: SPR.move }} variants={toHeader} exit="gone" style={{ transformOrigin: "16px 70px" }}>
         <SearchBar query={QUERY.slice(0, typed)} caret height={48} typing={!done} />
       </motion.div>
       <div className="scroll">
         {done ? (
           // Suggestions answer the query, so they rise in only once it lands —
           // one by one, like the nudge's words. On exit they clear together.
-          <motion.ul initial="hidden" animate="shown" variants={{ shown: { transition: stagger(0.05) } }}>
+          <motion.ul initial="hidden" animate="shown" exit="gone" variants={{ shown: { transition: stagger(0.05) }, ...clearList }}>
             {SUGGESTIONS.map((s) => (
               <motion.li className="suggestion-item" key={s.text} variants={rise}>
                 <button className="suggestion" onClick={onSubmit} title={s.gloss}>

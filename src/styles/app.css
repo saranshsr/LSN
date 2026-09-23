@@ -364,8 +364,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ── Filter chips ─────────────────────────────────────────────────────────── */
 
-.chiprow { flex: none; padding: 8px 12px; }
-.chiprow-track { display: flex; gap: 8px; }
+/* The track bleeds to the screen edges and carries the 12pt inset itself, so
+   chips scroll under the edge of the phone instead of being cut 12pt short of
+   it. Logical properties, so the Arabic row mirrors. The end inset is a spacer:
+   8 of gap + 4 — flex scrollers don't reliably keep end padding. */
+.chiprow { flex: none; padding: 8px 0; }
+.chiprow-track { display: flex; gap: 8px; padding-inline-start: 12px; }
+.chiprow-track::after { content: ""; flex: none; width: 4px; }
 .chip {
   display: flex; align-items: center; gap: 6px; flex: none;
   height: 36px; padding: 0 12px;
@@ -893,3 +898,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tt-search { position: absolute; left: 0; top: 0; height: 44px; z-index: 2; }
 .tt-search .searchbar { height: 44px; }
 .tt-label span { white-space: pre; }
+
+/* Results loading after a search: placeholders on the real card geometry,
+   laid over the content they will hand to. */
+.plp-content { position: relative; }
+.plp-loading { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: var(--colour-surface-primary); pointer-events: none; }
+.plp-loading-chips { padding: 8px 12px 0; }
+.plp-loading-grid { padding-top: 12px; }

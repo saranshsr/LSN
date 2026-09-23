@@ -46,7 +46,7 @@ export function SkeletonScreen() {
   );
 }
 
-function SkeletonCard() {
+export function SkeletonCard() {
   return (
     <div className="sk-card">
       <div className="sk sk-card-image" />
