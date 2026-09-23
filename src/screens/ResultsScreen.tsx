@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, animate, motion } from "motion/react";
+import { animate, motion } from "motion/react";
 
 import { StatusBar, BottomNav, ChipRow } from "../components/chrome";
-import { SearchBar } from "../components/SearchBar";
 import { ProductCard } from "../components/ProductCard";
-import { GlyphButton, TooltipNudge } from "../components/nudge";
+import { TooltipHeader } from "../components/TooltipHeader";
+import { ArHeader } from "../components/ArHeader";
 import { NudgeHeader } from "../components/NudgeHeader";
 import { useRubberBand } from "../motion/useRubberBand";
 import { SPR, at, rise } from "../motion/springs";
 import { SCROLL, scrollDecision, shouldSettleToTop, type StateId } from "../motion/nudge-core";
-import { QUERY, type Locale } from "../data/copy";
+import type { Locale } from "../data/copy";
 import { products } from "../data/products";
 import type { NudgeState, Variant } from "../flow/flow";
 
@@ -17,8 +17,9 @@ type Props = {
   locale: Locale;
   variant: Variant;
   nudge: NudgeState;
-  /** `search` = arrived from the overlay, so the content settles in. */
-  entrance: "search" | "none";
+  /** `search` = arrived from the overlay, so the content settles in;
+   *  `skeleton` = the app just came back up after the switch. */
+  entrance: "search" | "skeleton" | "none";
   onSwitch: () => void;
   onDismiss: () => void;
   onCollapse: (collapsed: boolean) => void;
@@ -35,17 +36,18 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
   const scroller = useRef<HTMLDivElement>(null);
   useRubberBand(scroller);
 
-  // SPEC §1 mount behaviour: if the nudge should appear on first render, mount
-  // in C and run the entrance once laid out.
-  const wantsEntrance = locale === "en" && variant === "inline" && state === "offered";
+  // The user lands on the plain, full-width bar (P) while the results rise in;
+  // only once that has settled does the nudge bloom out of the bar — so it
+  // reads as something that has just come up, and grabs attention for it.
+  const wantsEntrance = locale === "en" && state === "offered";
   const [mounted, setMounted] = useState(!wantsEntrance);
   useEffect(() => {
     if (mounted) return;
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
+    const t = setTimeout(() => setMounted(true), at(0.9) * 1000);
+    return () => clearTimeout(t);
   }, [mounted]);
 
-  const nudgeState: StateId = mounted ? AS_STATE[state] : "C";
+  const nudgeState: StateId = mounted ? AS_STATE[state] : "P";
 
   // The header reports its own height; the scroller's inset follows it so the
   // header stays pinned and the content below moves with `lay`.
@@ -54,7 +56,7 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
   // SPEC §7: scroll triggers the springs, it does not scrub them.
   const settle = useRef<ReturnType<typeof setTimeout>>();
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (locale !== "en" || variant !== "inline" || state === "dismissed") return;
+    if (locale !== "en" || state === "dismissed" || !mounted) return;
     const el = e.currentTarget;
     const y = el.scrollTop;
 
@@ -72,7 +74,6 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
     }, 90);
   };
 
-  const tooltipOpen = locale === "en" && state === "offered" && variant === "tooltip";
   const arrive = entrance === "search";
 
   return (
@@ -80,30 +81,18 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
       <StatusBar />
 
       {locale === "ar" ? (
-        <header className="plp-header plp-header--plain plp-header--ar">
-          <div className="plp-row plp-row--ar">
-            <SearchBar query={QUERY} back />
-          </div>
-        </header>
+        <ArHeader settle={entrance === "skeleton"} />
       ) : variant === "inline" ? (
         <NudgeHeader state={nudgeState} onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       ) : (
-        <header className="plp-header plp-header--plain">
-          <div className="plp-row tooltip-anchor">
-            <SearchBar query={QUERY} back />
-            <GlyphButton standalone onClick={onSwitch} />
-            <AnimatePresence>
-              {tooltipOpen ? <TooltipNudge key="tooltip" onSwitch={onSwitch} onDismiss={onDismiss} /> : null}
-            </AnimatePresence>
-          </div>
-        </header>
+        <TooltipHeader state={nudgeState} onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       )}
 
       <div
         className="scroll"
         ref={scroller}
         onScroll={onScroll}
-        style={{ paddingTop: locale === "ar" ? 106.57 : variant === "inline" ? inset : 108.57 }}
+        style={{ paddingTop: locale === "ar" ? 106.57 : inset }}
       >
         {/* Arriving from search, the content rises in as two groups — chips,
             then the grid — while the nudge blooms above it. Arriving from the

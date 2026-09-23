@@ -52,7 +52,9 @@ list of things that would change if it mirrored the **decisions** instead.
     search bar — it is now camera · divider · query · chevron. Every other
     screen carries the glyph as a persistent entry point, and the 17 Sep
     benchmarking landed on "build the way out before the way in". As drawn,
-    the exit exists only in Account settings. Mirrored as-is; worth a decision.
+    the exit exists only in Account settings. **Decided 24 Sep: the glyph comes
+   back** — the prototype now settles the nudge into it, on the left of the RTL
+   bar, as the Arabic screen lands (`components/ArHeader.tsx`).
 12. **The RTL cards are spaced ~10px tighter** than the LTR cards they were
     copied from — a side effect of detaching for the mirror, not a decision.
 13. **Two dark inks are in play for the Mega Deal strip**: the LTR frame uses

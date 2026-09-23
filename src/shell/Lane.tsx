@@ -16,8 +16,8 @@ import {
 
 /** How long the skeleton holds — one shimmer sweep plus its rest, then a beat. */
 const SKELETON_MS = 1600;
-/** How long the reload takes to grow out of the Switch button. */
-const BURST_MS = 340;
+/** How long the sheet gets to recede before the app starts to fade away. */
+const HANDOFF_MS = 160;
 
 /**
  * Screen changes run on the flow's one spring system (`motion/springs.ts`).
@@ -36,12 +36,21 @@ const BURST_MS = 340;
  * the app relaunched. They just fade.
  */
 const fadeIn = { hidden: { opacity: 0 }, shown: { opacity: 1, transition: SPR.fade }, gone: { opacity: 0, transition: SPR.fade } };
+/**
+ * The switch. No burst, no wipe — the app softly lets go of the English
+ * screen (it dims, blurs a little and settles back a touch) while the relaunch
+ * fades up underneath, slower than a navigation fade, so it reads as the whole
+ * app changing rather than a screen being replaced.
+ */
+const RELAUNCH = SPR.relaunch;
+const letGo = { ...fadeIn, gone: { opacity: 0, scale: 0.985, filter: "blur(6px)", transition: RELAUNCH } };
+const fadeUp = { hidden: { opacity: 0 }, shown: { opacity: 1, transition: RELAUNCH }, gone: { opacity: 0, transition: RELAUNCH } };
 const SCREEN_ANIM = {
   home:       { variants: fadeIn, initial: "hidden" },
   search:     { variants: { ...fadeIn, gone: { opacity: 0, transition: { ...SPR.fade, delay: at(0.1) } } }, initial: "hidden" },
-  results:    { variants: fadeIn, initial: "hidden" },
-  transition: { variants: fadeIn, initial: "hidden" },
-  skeleton:   { variants: fadeIn, initial: "hidden" },
+  results:    { variants: letGo, initial: "hidden" },
+  transition: { variants: fadeUp, initial: "hidden" },
+  skeleton:   { variants: fadeUp, initial: "hidden" },
 } satisfies Record<Screen, Record<string, unknown>>;
 
 type DeviceProps = {
@@ -56,9 +65,6 @@ type DeviceProps = {
 export function Device({ variant, state, setState, pinned }: DeviceProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prev = useRef<Screen>(state.screen);
-  // The reload grows out of the button that caused it. Rare, high-emotion,
-  // and the clip it hands to opens on white — so the two meet seamlessly.
-  const [burst, setBurst] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const patch = (next: Partial<FlowState>) => setState((s) => ({ ...s, ...next }));
 
   // Results entering straight from the search overlay is a content arrival and
@@ -87,7 +93,9 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
       case "search":
         return <SearchScreen onSubmit={() => patch({ screen: "results" })} />;
       case "transition":
-        return <TransitionScreen onDone={() => patch({ screen: "skeleton" })} />;
+        // The language flips here, behind the relaunch clip — never on a screen
+        // the user can still see, which would mirror it mid-fade.
+        return <TransitionScreen onDone={() => patch({ screen: "skeleton", locale: "ar", nudge: "dismissed" })} />;
       case "skeleton":
         return <SkeletonScreen />;
       case "results":
@@ -96,7 +104,7 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
             locale={state.locale}
             variant={variant}
             nudge={state.nudge}
-            entrance={from === "search" ? "search" : "none"}
+            entrance={from === "search" ? "search" : from === "skeleton" ? "skeleton" : "none"}
             onSwitch={() => patch({ sheetOpen: true })}
             onDismiss={() => patch({ nudge: "dismissed" })}
             onCollapse={(collapsed) =>
@@ -126,32 +134,12 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
         </LayoutGroup>
       </div>
 
-      <AnimatePresence>
-        {burst ? (
-          <motion.div
-            key="burst"
-            className="burst"
-            initial={{ left: burst.x, top: burst.y, width: burst.w, height: burst.h, borderRadius: 12, opacity: 1 }}
-            animate={{ left: 0, top: 0, width: 375, height: 812, borderRadius: 0 }}
-            // Holds until the relaunch screen has faded in underneath, so the
-            // outgoing screen — already mirrored to Arabic — is never seen.
-            exit={{ opacity: 0, transition: { ...SPR.fade, delay: at(0.32) } }}
-            transition={SPR.burst}
-          />
-        ) : null}
-      </AnimatePresence>
-
       <ConfirmSheet
         open={state.sheetOpen}
         onCancel={() => patch({ sheetOpen: false })}
-        onConfirm={(from) => {
-          const box = ref.current?.getBoundingClientRect();
-          if (box) setBurst({ x: from.x - box.x, y: from.y - box.y, w: from.width, h: from.height });
+        onConfirm={() => {
           patch({ sheetOpen: false });
-          setTimeout(() => {
-            patch({ screen: "transition", locale: "ar", nudge: "dismissed" });
-            setBurst(null);
-          }, BURST_MS);
+          setTimeout(() => patch({ screen: "transition" }), HANDOFF_MS);
         }}
       />
     </div>

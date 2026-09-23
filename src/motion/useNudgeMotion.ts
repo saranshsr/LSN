@@ -66,7 +66,7 @@ export function useNudgeMotion(L: Layout, initial: StateId): NudgeMotion {
       if (from === to) return;
       stateRef.current = to;
 
-      const isEntrance = from === "C" && to === "A";
+      const isEntrance = (from === "C" || from === "P") && to === "A";
       entering.current = isEntrance;
       sheenStart.current = isEntrance && !reduced ? performance.now() : null;
 

@@ -28,6 +28,10 @@ export const nudge = {
   label: "Switch app to Arabic?",
   dismiss: "Not now",
   action: "Switch",
+  /** The tooltip layout's own line, from the designer's tooltip frame
+   *  (not in the Figma section). "العربية" = "Arabic". */
+  tooltipLead: "Want noon in",
+  tooltipLang: "العربية",
 };
 
 export const sheet = {

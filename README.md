@@ -78,6 +78,9 @@ scroll position. Frame 7 is the same screen at `locale = "ar"`.
 
 ## The two lanes
 
+> The tooltip lane now uses the designer's tooltip layout and its prototype motion
+> (`components/TooltipHeader.tsx`), replacing the earlier dark floating tooltip.
+
 - **True inline** — mirrored from the Figma. The nudge takes a row inside the
   pale card under the search bar and pushes the results down.
 - **Tooltip** — *derived, not mirrored.* The section only draws the inline
@@ -192,6 +195,7 @@ on every screen:
 | `clear` | 0.55 ×, 1.0 | Content fading out of the way |
 | `recede` | 0.72 ×, 1.0 (never overshoots) | Anything leaving as one layer |
 | `fade` | 0.6 ×, 1.0 | Screen cross-fades |
+| `relaunch` | 1.5 ×, 1.0 | The app switching language |
 | press | 0.34 ×, 0.62 | `scale(0.97)`, baked into a CSS `linear()` easing |
 
 Choreography follows the nudge too: content clears before its container moves,
@@ -199,13 +203,16 @@ containers settle before content forms, and delays scale with the base.
 
 | Beat | What moves |
 | --- | --- |
+| Home loads | One orchestrated moment, top to bottom: marketplace tiles fade up in turn, then the address, bar, cashback strip, promo, section title and category rows each rise into place |
 | Home → search | The bar morphs up on `move` while Home fades behind it; the keyboard docks a beat later; the query types itself once the bar has settled; suggestions rise in one by one |
-| Search → results | The keyboard drops on `recede` and the overlay holds a beat so the drop is seen; results arrive as two groups (chips, then grid) rising in while the nudge blooms |
-| Nudge (inline) | Per `docs/motion-handoff/SPEC.md` — see below |
-| Nudge (tooltip) | Opens out of the glyph with a soft overshoot; glyph pops, words rise, buttons form. Dismiss recedes it back toward the glyph as one layer |
+| Search → results | The keyboard drops on `recede` and the overlay holds a beat so the drop is seen; results arrive as two groups (chips, then grid) rising in. The user lands on the **plain, full-width bar** (state `P`) |
+| Nudge arrives | About 0.9 s after landing, the nudge blooms out of the bar — so it reads as something that has just come up. Inline: per `docs/motion-handoff/SPEC.md`. Tooltip: the pointer slips out from under the bar, the card unfolds from it, the tile pops, words rise, pills form, one slow band of light |
+| Nudge (tooltip) collapse | The bar makes room, the tile slides along its own row and curves up into the slot — becoming the button — then the card retracts into the bar |
+| Nudge (tooltip) dismiss | The tooltip recedes toward its pointer as one layer; then the bar makes room and the glyph pops in (dismiss ≠ never, as inline) |
 | Sheet | Docks on `sheet`; glyph pops, title words rise, body rises, buttons settle in. Leaves on `recede`, carrying the drag's release velocity |
-| Confirm → reload | The reload grows out of the Switch button on `burst` and holds until the relaunch screen is in, so the half-mirrored screen is never seen |
-| Relaunch, skeleton | Cross-fade on `fade`; the skeleton's own sweep is unchanged (it is measured off the real app) |
+| Confirm → relaunch | No burst. The English screen softly lets go — dims, blurs a little, settles back to 98.5% — while the Hala → هلا clip fades up on `relaunch`, a long critically damped fade |
+| Relaunch → skeleton → Arabic | Slow cross-fades. The language flips behind the clip, never on a visible screen. The skeleton's own sweep is unchanged (measured off the real app) |
+| Arabic lands | The user sees the full-width bar where the skeleton's bar was, then the nudge settles into its contracted form: the bar makes room on the left (RTL) and the glyph pops into the slot |
 
 **Deliberately not animated:** the product grid and chips, except for their one
 arrival from search. From the skeleton they must not move — placeholder and

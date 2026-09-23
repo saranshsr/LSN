@@ -29,6 +29,9 @@ const s = (responseMul: number, damping: number): Spring => {
   return { type: "spring", mass: 1, stiffness: c.stiffness, damping: c.damping };
 };
 
+/** Any spring in the system, as a multiple of the base response. */
+export const spring = (responseMul: number, damping: number) => s(responseMul, damping);
+
 export const SPR = {
   /** Containers and shared elements travelling through space (nudge `geo`). */
   move: s(1, Z),
@@ -48,8 +51,8 @@ export const SPR = {
   recede: s(0.72, 1),
   /** Screen-level fades. */
   fade: s(0.6, 1),
-  /** The reload growing out of the Switch button. Fast, no bounce. */
-  burst: s(0.62, 1),
+  /** The app relaunching into Arabic — a long, soft fade. Never overshoots. */
+  relaunch: s(1.5, 1),
   /** Bottom sheet arriving — docks with a whisper of settle. */
   sheet: s(0.9, 0.86),
 } as const;

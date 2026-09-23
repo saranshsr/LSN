@@ -4,7 +4,8 @@
  * Spec: ./SPEC.md   Tokens: ./motion-tokens.json
  */
 
-export type StateId = 'A' | 'B' | 'C'; // A nudge · B collapsed · C dismissed
+// P plain (the bar before the nudge arrives) · A nudge · B collapsed · C dismissed
+export type StateId = 'P' | 'A' | 'B' | 'C';
 export type Channel =
   | 'geo' | 'drop' | 'sx' | 'swd' | 'ic' | 'iv' | 'btn' | 'lay' | 'txt' | 'nn' | 'sb' | 'wm';
 export type Values = Record<Channel, number>;
@@ -109,6 +110,13 @@ export function stateTargets(L: Layout): Record<StateId, Partial<Values>> {
      * scrolling can bring the nudge back from B, and never from C (§7).
      */
     C: { geo: 1, sx: d.search.B.x, swd: d.search.B.w, ic: 1, iv: 1, btn: 1, lay: 1, txt: 1, nn: 1, sb: 1, wm: 1 },
+    /**
+     * P — what the user lands on: the plain, full-width search bar, no card,
+     * no glyph. The nudge then blooms out of it (P → A), so it reads as
+     * something that has just arrived rather than something already there.
+     * This is the handoff's C (SPEC §1); ours is taken by the glyph state.
+     */
+    P: { geo: 1, sx: 0, swd: L.width, ic: 0, iv: 0, btn: 0, lay: 1, txt: 1, nn: 1, sb: 1, wm: 1 },
   };
 }
 
@@ -125,6 +133,9 @@ export const PLANS: Record<string, Partial<Record<Channel, number>>> = {
   // because the button is where the nudge ends up. Same beats as A → B.
   AC: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, sx: 0, swd: 0, ic: 0.04, geo: 0.2, btn: 0.22, lay: 0.2 },
   CA: { sx: 0, swd: 0, geo: 0.03, lay: 0.1, drop: 0.16, iv: 0.34, wm: 0.36, txt: 0.4, nn: 0.5, sb: 0.57 }, // entrance
+  // The arrival: the bar insets, the card blooms out from behind it and drops
+  // open, then the icon pops and the copy forms (SPEC §6.1).
+  PA: { sx: 0, swd: 0, geo: 0.03, lay: 0.1, drop: 0.16, iv: 0.34, wm: 0.36, txt: 0.4, nn: 0.5, sb: 0.57 },
   // B and C rest identically, so these carry no visible change.
   BC: {},
   CB: {},
@@ -138,7 +149,7 @@ export const PLANS: Record<string, Partial<Record<Channel, number>>> = {
 export function preSnaps(from: StateId, to: StateId, v: Values, L: Layout): Partial<Values> {
   const t = stateTargets(L)[to], out: Partial<Values> = {};
   if (to !== 'C' && v.iv < 0.05 && t.ic !== undefined) out.ic = t.ic;
-  if (from === 'C' && to === 'A' && v.geo > 0.98) out.drop = 1;
+  if ((from === 'C' || from === 'P') && to === 'A' && v.geo > 0.98) out.drop = 1;
   return out;
 }
 

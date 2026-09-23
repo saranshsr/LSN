@@ -3,7 +3,23 @@ import { motion } from "motion/react";
 import { StatusBar, BottomNav } from "../components/chrome";
 import { SearchBar } from "../components/SearchBar";
 import { Icon } from "../icons/Icon";
-import { SPR } from "../motion/springs";
+import { SPR, rise, stagger } from "../motion/springs";
+
+/**
+ * How Home loads — one orchestrated moment, top to bottom: the marketplace
+ * tiles fade up one after another, then the address, the bar, the cashback
+ * strip, the promo, the section title and the category rows each rise 9px into
+ * place, sharpening as they land. Rows move as rows; the tiles inside them only
+ * fade (they own the press transform). The bar only fades — it is the shared
+ * element the search overlay morphs, so it must not carry a transform.
+ */
+const page = { shown: { transition: stagger(0.055, 0.04) } };
+const rowIn = { hidden: rise.hidden, shown: { ...(rise.shown as object), transition: { ...SPR.rise, ...stagger(0.035) } } };
+const tile = {
+  hidden: { opacity: 0, filter: "blur(4px)" },
+  shown: { opacity: 1, filter: "blur(0px)", transition: SPR.rise },
+};
+const fadeOnly = { hidden: { opacity: 0 }, shown: { opacity: 1, transition: SPR.rise } };
 import { chrome, type Locale } from "../data/copy";
 
 /**
@@ -27,27 +43,27 @@ export function HomeScreen({ locale, onSearch }: { locale: Locale; onSearch: () 
   return (
     <div className="screen screen--home">
       <StatusBar />
-      <div className="scroll">
+      <motion.div className="scroll" initial="hidden" animate="shown" variants={page}>
         <div className="home-hero">
           <Sparkles />
           <MarketplaceRail />
 
-          <div className="home-address">
+          <motion.div className="home-address" variants={rise}>
             <Icon name="bottomnav-home-filled" size={18} />
             <span className="home-address-label">{c.addressLabel}</span>
             <Icon name="system-chevron-down" size={16} />
             <span className="home-address-line">{c.address}</span>
             <button className="home-heart" aria-label="Saved"><Icon name="system-heart-filled" size={20} /></button>
-          </div>
+          </motion.div>
 
-          <motion.div className="home-search" layoutId="searchbar" transition={{ layout: SPR.move }}>
+          <motion.div className="home-search" layoutId="searchbar" variants={fadeOnly} transition={{ layout: SPR.move }}>
             <SearchBar placeholder={c.searchPlaceholder} height={48} onClick={onSearch} />
           </motion.div>
         </div>
 
         <div className="home-content">
           {/* Ticket-shaped strip: two 12px notches bitten out of the side edges. */}
-          <div className="cashback">
+          <motion.div className="cashback" variants={rise}>
             <img className="cashback-art" src="/img/home/cashback-card.jpg" alt="" />
             <span className="cashback-title">{c.home.promoTitle}</span>
             <span className="cashback-sub">{c.home.promoSub}</span>
@@ -55,9 +71,9 @@ export function HomeScreen({ locale, onSearch }: { locale: Locale; onSearch: () 
               {c.home.pager}
               <span className="cashback-dots"><i /><i /><i /></span>
             </span>
-          </div>
+          </motion.div>
 
-          <div className="hscroll promo-rail">
+          <motion.div className="hscroll promo-rail" variants={rise}>
             <div className="promo">
               <img className="promo-art-l" src="/img/home/promo-left.jpg" alt="" />
               <img className="promo-art-r" src="/img/home/promo-right.jpg" alt="" />
@@ -76,22 +92,22 @@ export function HomeScreen({ locale, onSearch }: { locale: Locale; onSearch: () 
             <div className="promo promo--peek" aria-hidden="true">
               <img className="promo-art-l" src="/img/home/promo-right.jpg" alt="" />
             </div>
-          </div>
-          <span className="promo-terms">{c.home.promo.terms}</span>
+          </motion.div>
+          <motion.span className="promo-terms" variants={fadeOnly}>{c.home.promo.terms}</motion.span>
 
-          <h2 className="home-section-title">{c.home.shopByCategory}</h2>
+          <motion.h2 className="home-section-title" variants={rise}>{c.home.shopByCategory}</motion.h2>
           {c.home.categories.map((row, r) => (
-            <div className="hscroll cat-row" key={r}>
+            <motion.div className="hscroll cat-row" key={r} variants={rowIn}>
               {row.map((label, i) => (
-                <span className="cat" key={`${r}-${i}`}>
+                <motion.span className="cat" key={`${r}-${i}`} variants={tile}>
                   <img src={`/img/home/cat-${(i % 4) + 1}.jpg`} alt="" />
                   <span>{label}</span>
-                </span>
+                </motion.span>
               ))}
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
       <BottomNav locale={locale} home />
     </div>
   );
@@ -120,35 +136,35 @@ function Sparkles() {
  */
 function MarketplaceRail() {
   return (
-    <div className="hscroll mp-rail">
-      <span className="mp-tile mp-tile--noon">
+    <motion.div className="hscroll mp-rail" variants={rowIn}>
+      <motion.span variants={tile} className="mp-tile mp-tile--noon">
         <img className="mp-noon-mark" src="/img/mp/noon-mark.svg" alt="noon" />
         <img className="mp-noon-word" src="/img/mp/noon-word.svg" alt="" />
-      </span>
+      </motion.span>
 
-      <span className="mp-tile">
+      <motion.span variants={tile} className="mp-tile">
         <img className="mp-super" src="/img/mp/super.svg" alt="super" />
         <img className="mp-mall" src="/img/mp/mall.svg" alt="mall" />
-      </span>
+      </motion.span>
 
-      <span className="mp-tile">
+      <motion.span variants={tile} className="mp-tile">
         <img className="mp-food" src="/img/mp/noon-food.svg" alt="noon FOOD" />
-      </span>
+      </motion.span>
 
-      <span className="mp-tile">
+      <motion.span variants={tile} className="mp-tile">
         <img className="mp-mins" src="/img/mp/mins.png" alt="15 MINUTES" />
-      </span>
+      </motion.span>
 
-      <span className="mp-tile">
+      <motion.span variants={tile} className="mp-tile">
         <img className="mp-brand5" src="/img/mp/brand5.svg" alt="" />
-      </span>
+      </motion.span>
 
-      <span className="mp-tile mp-tile--sq">
+      <motion.span variants={tile} className="mp-tile mp-tile--sq">
         <img className="mp-namshi" src="/img/mp/namshi.png" alt="Namshi" />
         <span className="mp-label mp-label--namshi">Namshi</span>
-      </span>
+      </motion.span>
 
-      <span className="mp-tile mp-tile--sq">
+      <motion.span variants={tile} className="mp-tile mp-tile--sq">
         <span className="mp-pay">
           <span className="mp-pay-back" />
           <span className="mp-pay-face" />
@@ -156,7 +172,7 @@ function MarketplaceRail() {
           <img className="mp-pay-b" src="/img/mp/pay-send-b.svg" alt="" />
         </span>
         <span className="mp-label mp-label--pay">Pay</span>
-      </span>
-    </div>
+      </motion.span>
+    </motion.div>
   );
 }
