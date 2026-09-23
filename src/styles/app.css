@@ -240,6 +240,14 @@ ul { margin: 0; padding: 0; list-style: none; }
 .plp-header {
   position: absolute; inset-inline: 0; top: 0; z-index: 2;
   background: var(--colour-surface-primary);
+  /* Figma 278:47009: a white card, square on top, 16 at the bottom, with a
+     0 4 12 rgba(14,14,14,.08) shadow. The sibling 0 4 4 @.25 on the fill-less
+     M-PageHeader frame is not reproduced: Figma renders nothing for it (the
+     pixels under the pills are pure white). The corners only read once content
+     sits behind them, so the radius is always on; the shadow ramps in over the
+     first 12px of scroll via --scrolled (ResultsScreen). */
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 12px rgba(14, 14, 14, calc(0.08 * var(--scrolled, 0)));
 }
 /* Collapsed LTR header: 42.57 + 8 + 44 + 14 = 108.57 (frame 4). */
 .plp-header--plain { padding: 50.57px 12px 14px; }
@@ -410,6 +418,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: var(--colour-surface-success-bold);
   color: var(--colour-text-n-icon-on-surface-bold);
   font-size: 12px; font-weight: 600;
+  box-shadow: 0 0 0 1px #eff7ff; /* Figma effect style focus-shadow/accent/sm */
 }
 .card-heart {
   position: absolute; top: 8px; inset-inline-end: 8px;
@@ -879,7 +888,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.12) 25%, rgba(255,255,255,.42) 45%,
     rgba(255,255,255,.52) 50%, rgba(255,255,255,.42) 55%, rgba(255,255,255,.12) 75%, rgba(255,255,255,0) 100%);
 }
-.tt-watermark { position: absolute; left: 172px; top: 62px; color: var(--base-colour-brand-blue-300); pointer-events: none; }
+.tt-watermark { position: absolute; left: 172px; top: 62px; color: var(--base-colour-brand-blue-300); pointer-events: none; filter: drop-shadow(0 -0.6px 44px rgba(82, 154, 255, 0.04)); }
 .tt-row {
   position: absolute; left: 9px; top: 68px; width: 333px; height: 32px;
   display: flex; align-items: center; pointer-events: auto;
@@ -910,3 +919,21 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: url("/img/nudge/halftone-nudge.png") 0 100% / 351px 108px no-repeat;
   opacity: 0.3; mix-blend-mode: plus-lighter;
 }
+
+/* ── Shared search bar in flight (shell/BarFlight) ──────────────────────────
+   The shell is the one opaque surface; faces are content only. Its 1px border
+   plus a borderless inner bar insets the content exactly as a real bar's own
+   1px border does, so nothing shifts at landing. Real bars are hidden for the
+   flight so there is never a second copy on screen. */
+.bar-flight {
+  position: absolute; z-index: 5;
+  border: 1px solid; overflow: hidden; pointer-events: none;
+}
+.bar-flight-face { position: absolute; inset: 0; }
+.bar-flight .searchbar {
+  width: 100%; height: 100% !important;
+  background: transparent; border: 0;
+}
+.device[data-flying] .screen-layer .searchbar,
+.device[data-flying] .screen-layer .nudge-search,
+.screen-layer[data-bar-left] .searchbar { visibility: hidden; }

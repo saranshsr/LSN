@@ -66,10 +66,16 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
 
   // SPEC §7: scroll triggers the springs, it does not scrub them.
   const settle = useRef<ReturnType<typeof setTimeout>>();
+  const root = useRef<HTMLDivElement>(null);
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (locale !== "en" || state === "dismissed" || !mounted) return;
     const el = e.currentTarget;
     const y = el.scrollTop;
+    // The header lifts off the page once content passes under it — Figma draws
+    // the shadow on frame 4 (scrolled) and on none of the resting frames, so it
+    // follows scroll, in every variant and language, not the nudge state.
+    root.current?.querySelector<HTMLElement>(".plp-header")
+      ?.style.setProperty("--scrolled", String(Math.min(1, Math.max(0, y / 12))));
+    if (locale !== "en" || state === "dismissed" || !mounted) return;
 
     const next = scrollDecision(AS_STATE[state], y);
     if (next === "B") onCollapse(true);
@@ -100,7 +106,7 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
   });
 
   return (
-    <div className="screen" data-entrance={entrance}>
+    <div className="screen" data-entrance={entrance} ref={root}>
       <StatusBar />
 
       {locale === "ar" ? (

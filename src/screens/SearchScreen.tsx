@@ -8,15 +8,12 @@ import { Icon } from "../icons/Icon";
 import { SPR, rise, stagger } from "../motion/springs";
 
 /**
- * Submitting: the bar is the thread the user follows. It travels from the
- * overlay (x16 y70, 343 × 48) into exactly where the results header's bar sits
- * (x12 y50.57, 351 × 44) on `move`, while the keyboard drops and the
- * suggestions clear. The results screen fades up underneath with its own bar
- * in that same spot, so the hand-off is invisible — one bar, settling.
+ * Submitting: the bar is the thread the user follows. The Device lifts it into
+ * a flight layer (shell/BarFlight) and flies it from the overlay into wherever
+ * this lane's results header puts its bar — measured, since the inline and
+ * tooltip headers differ — while the keyboard drops and the suggestions clear.
+ * The results screen fades up underneath and takes the bar back on landing.
  */
-const toHeader = {
-  gone: { x: -4, y: -19.43, scaleX: 351 / 343, scaleY: 44 / 48, transition: SPR.move },
-};
 const clearList = { gone: { opacity: 0, y: -6, filter: "blur(3px)", transition: SPR.clear } };
 import { QUERY, SUGGESTIONS } from "../data/copy";
 
@@ -55,9 +52,9 @@ export function SearchScreen({ onSubmit }: { onSubmit: () => void }) {
   return (
     <div className="screen search-screen">
       <StatusBar />
-      <motion.div className="search-head" layoutId="searchbar" transition={{ layout: SPR.move }} variants={toHeader} exit="gone" style={{ transformOrigin: "16px 70px" }}>
+      <div className="search-head">
         <SearchBar query={QUERY.slice(0, typed)} caret height={48} typing={!done} />
-      </motion.div>
+      </div>
       <div className="scroll">
         {done ? (
           // Suggestions answer the query, so they rise in only once it lands —

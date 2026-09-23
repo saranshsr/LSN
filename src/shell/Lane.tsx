@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { HomeScreen } from "../screens/HomeScreen";
 import { SearchScreen } from "../screens/SearchScreen";
@@ -7,7 +7,8 @@ import { ResultsScreen } from "../screens/ResultsScreen";
 import { TransitionScreen } from "../screens/TransitionScreen";
 import { SkeletonScreen } from "../screens/SkeletonScreen";
 import { ConfirmSheet } from "../components/Sheet";
-import { dirFor } from "../data/copy";
+import { QUERY, chrome, dirFor } from "../data/copy";
+import { BarFlight, chromeOf, readLook, type Flight } from "./BarFlight";
 import { SPR, at } from "../motion/springs";
 import {
   STEPS, initialState, stateForStep, stepOf,
@@ -23,9 +24,10 @@ const HANDOFF_MS = 160;
  * Screen changes run on the flow's one spring system (`motion/springs.ts`).
  *
  * Home, search and results share the search bar, so the BAR carries those
- * transitions — it morphs between its positions on the `move` spring — while
- * the screens behind it cross-fade on `fade`. No scale on these: scaling a
- * parent during a layout animation distorts what the shared element measures.
+ * transitions — it flies between its positions on the `move` spring, lifted
+ * above both screens (see BarFlight) — while the screens behind it cross-fade
+ * on `fade`. No scale on these: the flight measures the bars it travels
+ * between, and a scaling parent would hand it a distorted box.
  *
  * The screens are VARIANT parents (`hidden` → `shown` → `gone`), so their
  * children can choreograph against them: the keyboard docks after the search
@@ -73,6 +75,43 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
   // placeholder and the content occupy the same pixels and nothing should move.
   const from = prev.current;
   useEffect(() => { prev.current = state.screen; }, [state.screen]);
+
+  // The shared search bar. Measured in a layout effect so both ends are read
+  // after the incoming screen has laid out its header and BEFORE first paint:
+  // the flight and the hiding of the real bars land on the same frame.
+  const reduced = useReducedMotion();
+  const [flight, setFlight] = useState<Flight | null>(null);
+  const flightId = useRef(0);
+  const lastScreen = useRef(state.screen);
+  useLayoutEffect(() => {
+    const was = lastScreen.current;
+    lastScreen.current = state.screen;
+    if (was === state.screen) return;
+    const dev = ref.current;
+    const leg = was === "home" && state.screen === "search" ? "open"
+      : was === "search" && state.screen === "results" ? "submit" : null;
+    if (!leg || reduced || !dev) { setFlight(null); return; }
+    const bar = (scr: Screen) => dev.querySelector<HTMLElement>(`.screen-layer[data-screen="${scr}"] .searchbar`);
+    // A screen coming back mid-exit is the same element re-entering, so it must
+    // not keep a mark from when it was the one being left.
+    dev.querySelector(`.screen-layer[data-screen="${state.screen}"]`)?.removeAttribute("data-bar-left");
+    const a = bar(was), b = bar(state.screen);
+    if (!a || !b) { setFlight(null); return; }
+    // The bar has left this screen for good. The flight lands (~450ms) before
+    // the screen finishes fading (it holds for the keyboard drop), so hiding
+    // only while in flight let its bar reappear beside the landed one.
+    a.closest(".screen-layer")?.setAttribute("data-bar-left", "");
+    setFlight({
+      id: ++flightId.current,
+      from: readLook(chromeOf(a), dev),
+      // Live, not a snapshot: the results headers keep animating their bar
+      // while the flight is in the air.
+      to: () => { const live = bar(state.screen); return live ? readLook(chromeOf(live), dev) : null; },
+      // Contents at each end, as the two screens draw them.
+      src: leg === "open" ? { placeholder: chrome[state.locale].searchPlaceholder } : { query: QUERY, caret: true },
+      dst: leg === "open" ? { query: "", caret: true, typing: true } : { query: QUERY, back: true },
+    });
+  }, [state.screen, state.locale, reduced]);
 
   useEffect(() => {
     if (pinned || state.screen !== "skeleton") return;
@@ -125,13 +164,13 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
   })();
 
   return (
-    <div className="device" dir={dirFor[state.locale]} ref={ref}>
+    <div className="device" dir={dirFor[state.locale]} ref={ref} data-flying={flight ? "" : undefined}>
       {/* The layer the sheet pushes back. */}
       <div className="device-screens">
-        <LayoutGroup>
         <AnimatePresence initial={false}>
           <motion.div
             key={state.screen}
+            data-screen={state.screen}
             className="screen-layer"
             {...SCREEN_ANIM[state.screen]}
             animate="shown"
@@ -140,7 +179,7 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
             {screen}
           </motion.div>
         </AnimatePresence>
-        </LayoutGroup>
+        {flight ? <BarFlight key={flight.id} flight={flight} onLand={(id) => setFlight((f) => (f?.id === id ? null : f))} /> : null}
       </div>
 
       <ConfirmSheet

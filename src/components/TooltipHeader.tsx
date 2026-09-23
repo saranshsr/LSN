@@ -28,7 +28,7 @@ import type { StateId } from "../motion/nudge-core";
  */
 import {
   W, GAP, BTNX, NOTCH, R, STAGE_Y, STAGE_X, PAD_B, clamp, lerp,
-  SPRINGS, ENTRANCE, HIDDEN_COPY, STATES, PLANS, SHEEN, tooltipGeom, type K,
+  SPRINGS, ENTRANCE, STATES, PLANS, SHEEN, tooltipGeom, type K,
 } from "../motion/tooltip-core";
 const WORDS = [...nudge.tooltipLead.split(" "), nudge.tooltipLang];
 
@@ -59,14 +59,12 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
     sheenStart.current = entering.current && !ch.reduced ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
 
     if (to === "C" && from === "A") {
-      // Recede as one layer toward the pointer; the layout gives the space back.
-      ch.to({ dm: 1, lay: 1 }, { lay: 0.07 }, spr);
-      // Then, invisibly, fold the tooltip away and park the tile in the slot —
-      // and bring the glyph in beside a bar that makes room for it.
-      ch.later(0.3, () => {
-        ch.snap({ geo: 1, uf: 0, drop: 0, nt: 0, ic: 1, iv: 0, dm: 0, ...HIDDEN_COPY });
-        ch.to({ sx: 0, swd: BTNX - GAP, iv: 1 }, { iv: 0.08 }, (k) => (k === "iv" ? SPR.pop : SPRINGS[k]));
-      });
+      // "Not now" plays exactly what scrolling plays (plan AB): the copy clears,
+      // the card folds into the bar and the glyph TRAVELS along its path into
+      // the header button — the same object moving to where it lives from now
+      // on, rather than the tooltip fading out and a new glyph popping in. The
+      // end state is B's; C differs only in that scrolling no longer reopens it.
+      ch.to(STATES.C, PLANS.AB, spr);
       return;
     }
     if (from === "P" && to === "C") {
@@ -101,11 +99,9 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
     });
     s(r.search.current, { transform: `translate(${v.sx}px, 0px)`, width: `${v.swd}px` });
 
-    const lift = Math.sin(Math.PI * clamp(v.ic));
     s(r.tile.current, {
       transform: `translate(${tx - ts / 2}px, ${ty - ts / 2}px)`, width: `${ts}px`, height: `${ts}px`, borderRadius: `${tr}px`,
       opacity: String(iv), filter: iv < 0.999 ? `blur(${(1 - iv) * 4}px)` : "none",
-      boxShadow: `0 ${2 + lift * 8}px ${lift * 20}px rgba(24, 36, 72, ${lift * 0.14})`,
       pointerEvents: cur.current !== "A" && v.ic > 0.6 && iv > 0.6 ? "auto" : "none",
     });
     s(r.ring.current, { opacity: String(clamp((v.ic - 0.4) / 0.5)) });

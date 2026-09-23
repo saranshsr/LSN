@@ -56,7 +56,7 @@ export function HomeScreen({ locale, onSearch }: { locale: Locale; onSearch: () 
             <button className="home-heart" aria-label="Saved"><Icon name="system-heart-filled" size={20} /></button>
           </motion.div>
 
-          <motion.div className="home-search" layoutId="searchbar" variants={fadeOnly} transition={{ layout: SPR.move }}>
+          <motion.div className="home-search" variants={fadeOnly}>
             <SearchBar placeholder={c.searchPlaceholder} height={48} onClick={onSearch} />
           </motion.div>
         </div>
