@@ -3,7 +3,7 @@ import { AnimatePresence, motion, type PanInfo } from "motion/react";
 
 import { Icon } from "../icons/Icon";
 import { sheet } from "../data/copy";
-import { duration, easing } from "../motion/tokens";
+import { SPR, popIn, rise, stagger } from "../motion/springs";
 
 /** Grabber + sheet + home indicator — the travel a full dismissal covers. */
 const DOCK_H = 341;
@@ -13,9 +13,24 @@ const project = (v: number) => (v / 1000) * DECEL / (1 - DECEL);
 /** Past this share of the dock, the projected landing point means "dismiss". */
 const COMMIT = 0.35;
 
-const enter = { type: "spring", duration: 0.42, bounce: 0.12 } as const;
-/** Exit faster than it entered — the system responding, not the user deciding. */
-const exit = { duration: duration.base, ease: easing.standard } as const;
+/** Docks on the `sheet` spring (a whisper of settle); leaves on `recede`, which
+ *  never overshoots — the system responding, not the user deciding. */
+const enter = SPR.sheet;
+const exit = SPR.recede;
+
+/**
+ * Once the sheet is docking, its content forms the way the nudge's does:
+ * the glyph pops, the title's words rise one by one, the body rises, then the
+ * buttons settle in. On exit nothing moves on its own — the sheet leaves as
+ * one layer. Buttons keep their CSS press, so the forming is on wrappers.
+ */
+const content = { shown: { transition: stagger(0.05, 0.1) } };
+const only = (v: typeof rise) => ({ hidden: v.hidden, shown: v.shown });
+const words = { shown: { transition: stagger(0.045) } };
+const settle = {
+  hidden: { opacity: 0, y: 8, scale: 0.96, filter: "blur(3px)" },
+  shown: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: SPR.form },
+};
 
 type Props = {
   open: boolean;
@@ -70,26 +85,38 @@ export function ConfirmSheet({ open, onCancel, onConfirm }: Props) {
             transition={enter}
           >
             <div className="sheet-grabber" />
-            <div className="sheet" role="dialog" aria-label={sheet.title}>
+            <motion.div className="sheet" role="dialog" aria-label={sheet.title} initial="hidden" animate="shown" variants={content}>
               <div className="sheet-header">
-                <Icon name="system-language-bold" size={48} />
+                <motion.span className="sheet-glyph" variants={only(popIn)}>
+                  <Icon name="system-language-bold" size={48} />
+                </motion.span>
               </div>
-              <h2 className="sheet-title">{sheet.title}</h2>
-              <p className="sheet-body">
+              <motion.h2 className="sheet-title" variants={words}>
+                {sheet.title.split(" ").map((w, i, all) => (
+                  <motion.span className="sheet-word" key={i} variants={only(rise)}>
+                    {w}{i < all.length - 1 ? " " : ""}
+                  </motion.span>
+                ))}
+              </motion.h2>
+              <motion.p className="sheet-body" variants={only(rise)}>
                 {before}
                 <b>{sheet.bodyEmphasis}</b>
                 {after}
-              </p>
+              </motion.p>
               <div className="sheet-actions">
-                <button className="btn-lg btn-lg--secondary" onClick={onCancel}>{sheet.cancel}</button>
-                <button
-                  className="btn-lg btn-lg--primary"
-                  onClick={(e) => onConfirm(e.currentTarget.getBoundingClientRect())}
-                >
-                  {sheet.action}
-                </button>
+                <motion.div className="sheet-action" variants={settle}>
+                  <button className="btn-lg btn-lg--secondary" onClick={onCancel}>{sheet.cancel}</button>
+                </motion.div>
+                <motion.div className="sheet-action" variants={settle}>
+                  <button
+                    className="btn-lg btn-lg--primary"
+                    onClick={(e) => onConfirm(e.currentTarget.getBoundingClientRect())}
+                  >
+                    {sheet.action}
+                  </button>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
             <div className="sheet-homebar" />
           </motion.div>
         </>

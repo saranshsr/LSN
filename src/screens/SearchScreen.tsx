@@ -5,12 +5,14 @@ import { StatusBar } from "../components/chrome";
 import { SearchBar } from "../components/SearchBar";
 import { Keyboard } from "../components/Keyboard";
 import { Icon } from "../icons/Icon";
+import { SPR, rise, stagger } from "../motion/springs";
 import { QUERY, SUGGESTIONS } from "../data/copy";
 
 /** Per character. Fast enough to read as typing, slow enough to watch. */
 const KEY_MS = 95;
 /** The overlay has to arrive and settle before anything is typed into it —
- *  the push takes ~400ms, so typing into a moving field looks wrong. */
+ *  the bar's `move` spring settles in ~500ms, so typing into a moving field
+ *  would look wrong. */
 const START_MS = 520;
 
 /**
@@ -41,21 +43,23 @@ export function SearchScreen({ onSubmit }: { onSubmit: () => void }) {
   return (
     <div className="screen search-screen">
       <StatusBar />
-      <motion.div className="search-head" layoutId="searchbar">
+      <motion.div className="search-head" layoutId="searchbar" transition={{ layout: SPR.move }}>
         <SearchBar query={QUERY.slice(0, typed)} caret height={48} typing={!done} />
       </motion.div>
       <div className="scroll">
         {done ? (
-          <ul>
+          // Suggestions answer the query, so they rise in only once it lands —
+          // one by one, like the nudge's words. On exit they clear together.
+          <motion.ul initial="hidden" animate="shown" variants={{ shown: { transition: stagger(0.05) } }}>
             {SUGGESTIONS.map((s) => (
-              <li className="suggestion-item" key={s.text}>
+              <motion.li className="suggestion-item" key={s.text} variants={rise}>
                 <button className="suggestion" onClick={onSubmit} title={s.gloss}>
                   <Icon name="system-search" size={24} />
                   {s.text}
                 </button>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         ) : null}
       </div>
       <Keyboard onReturn={done ? onSubmit : () => {}} />

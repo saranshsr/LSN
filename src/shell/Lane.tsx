@@ -8,7 +8,7 @@ import { TransitionScreen } from "../screens/TransitionScreen";
 import { SkeletonScreen } from "../screens/SkeletonScreen";
 import { ConfirmSheet } from "../components/Sheet";
 import { dirFor } from "../data/copy";
-import { duration, easing } from "../motion/tokens";
+import { SPR, at } from "../motion/springs";
 import {
   STEPS, initialState, stateForStep, stepOf,
   type FlowState, type Screen, type StepId, type Variant,
@@ -20,35 +20,28 @@ const SKELETON_MS = 1600;
 const BURST_MS = 340;
 
 /**
- * Navigation, not cross-fades. iOS pushes: the incoming screen comes from the
- * trailing edge while the outgoing parallaxes away at 30% of the distance,
- * with a shadow on the incoming edge. A cross-fade is the cheapest possible
- * bridge and reads as flat, which is most of why the switching felt wrong.
+ * Screen changes run on the flow's one spring system (`motion/springs.ts`).
  *
- * The reload beats — the wordmark clip and the skeleton — are NOT navigation.
- * Nothing moved through space; the app relaunched. Those stay cross-fades.
+ * Home, search and results share the search bar, so the BAR carries those
+ * transitions — it morphs between its positions on the `move` spring — while
+ * the screens behind it cross-fade on `fade`. No scale on these: scaling a
+ * parent during a layout animation distorts what the shared element measures.
  *
- * Apple's move spring: damping 1.0, response 0.4. No bounce, because no
- * gesture carried momentum into it.
+ * The screens are VARIANT parents (`hidden` → `shown` → `gone`), so their
+ * children can choreograph against them: the keyboard docks after the search
+ * screen arrives and drops before it leaves, and the search screen holds a
+ * beat on exit so that drop is seen.
+ *
+ * The reload beats — the wordmark clip and the skeleton — are not navigation;
+ * the app relaunched. They just fade.
  */
-const PUSH = { type: "spring", bounce: 0, duration: 0.4 } as const;
-const FADE = { duration: duration.base, ease: easing.loft } as const;
-
-/**
- * Home, search and results share the search bar, so they cross-fade and the
- * BAR carries the transition — it morphs between its three positions while the
- * content behind it changes. That is what iOS does when you activate search;
- * it is not a push, and a push would fight the shared element.
- *
- * Deliberately no scale on these three: scaling a parent during a layout
- * animation distorts the measurements the shared element depends on.
- */
+const fadeIn = { hidden: { opacity: 0 }, shown: { opacity: 1, transition: SPR.fade }, gone: { opacity: 0, transition: SPR.fade } };
 const SCREEN_ANIM = {
-  home:       { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: PUSH },
-  search:     { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: PUSH },
-  results:    { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: PUSH },
-  transition: { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: FADE },
-  skeleton:   { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: FADE },
+  home:       { variants: fadeIn, initial: "hidden" },
+  search:     { variants: { ...fadeIn, gone: { opacity: 0, transition: { ...SPR.fade, delay: at(0.1) } } }, initial: "hidden" },
+  results:    { variants: fadeIn, initial: "hidden" },
+  transition: { variants: fadeIn, initial: "hidden" },
+  skeleton:   { variants: fadeIn, initial: "hidden" },
 } satisfies Record<Screen, Record<string, unknown>>;
 
 type DeviceProps = {
@@ -124,6 +117,8 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
             key={state.screen}
             className="screen-layer"
             {...SCREEN_ANIM[state.screen]}
+            animate="shown"
+            exit="gone"
           >
             {screen}
           </motion.div>
@@ -138,8 +133,10 @@ export function Device({ variant, state, setState, pinned }: DeviceProps) {
             className="burst"
             initial={{ left: burst.x, top: burst.y, width: burst.w, height: burst.h, borderRadius: 12, opacity: 1 }}
             animate={{ left: 0, top: 0, width: 375, height: 812, borderRadius: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.34 }}
+            // Holds until the relaunch screen has faded in underneath, so the
+            // outgoing screen — already mirrored to Arabic — is never seen.
+            exit={{ opacity: 0, transition: { ...SPR.fade, delay: at(0.32) } }}
+            transition={SPR.burst}
           />
         ) : null}
       </AnimatePresence>

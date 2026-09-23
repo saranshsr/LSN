@@ -1,4 +1,7 @@
+import { motion } from "motion/react";
+
 import { Icon } from "../icons/Icon";
+import { SPR, at } from "../motion/springs";
 
 const ROWS = [
   ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
@@ -10,10 +13,19 @@ const ROWS = [
  * A prop, not a real IME. Measured off the frame: the grey block starts at
  * y516, rows are 41.5 tall on a 52 pitch starting at y539, keys are 30 wide on
  * a 36.5 pitch, and the home-indicator strip below the block is white.
+ *
+ * Docks on the `dock` spring a beat after the overlay arrives, and drops on
+ * `recede` before the overlay leaves — it takes its cue from the screen's
+ * variants (`hidden` / `shown` / `gone`), so it needs no state of its own.
  */
+const dock = {
+  hidden: { y: "100%" },
+  shown: { y: 0, transition: { ...SPR.dock, delay: at(0.06) } },
+  gone: { y: "100%", transition: SPR.recede },
+};
 export function Keyboard({ onReturn }: { onReturn: () => void }) {
   return (
-    <div className="keyboard">
+    <motion.div className="keyboard" variants={dock}>
       <div className="keyboard-keys">
         <div className="keyboard-row">
           {ROWS[0].map((k) => <span className="key" key={k}>{k}</span>)}
@@ -37,7 +49,7 @@ export function Keyboard({ onReturn }: { onReturn: () => void }) {
         <Smiley />
         <Icon name="system-mic" size={20} />
       </div>
-    </div>
+    </motion.div>
   );
 }
 

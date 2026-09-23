@@ -114,11 +114,16 @@ export function stateTargets(L: Layout): Record<StateId, Partial<Values>> {
 
 /** Delays in seconds at response 0.52; multiply by (response / 0.52). Channels not listed start at 0. */
 export const PLANS: Record<string, Partial<Record<Channel, number>>> = {
-  AB: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, geo: 0.03, sx: 0.06, swd: 0.06, ic: 0.05, btn: 0.2, lay: 0.08 },
-  BA: { btn: 0, ic: 0, sx: 0.08, swd: 0.08, geo: 0.05, lay: 0, wm: 0.1, txt: 0.15, nn: 0.19, sb: 0.23 },
+  // The icon travels along its row inside the card, so the card has to stay
+  // until the icon has risen out of it: the search makes room first, the icon
+  // sets off, and only then do the card and the content below close up.
+  AB: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, sx: 0, swd: 0, ic: 0.04, geo: 0.2, btn: 0.22, lay: 0.2 },
+  // Reverse: the card comes out first so the icon has a row to drop into; the
+  // search only widens once the icon is clear of the button slot.
+  BA: { btn: 0, geo: 0, lay: 0, ic: 0.16, sx: 0.32, swd: 0.32, wm: 0.1, txt: 0.15, nn: 0.19, sb: 0.23 },
   // A → C now travels the icon to the button rather than fading it in place,
   // because the button is where the nudge ends up. Same beats as A → B.
-  AC: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, geo: 0.03, sx: 0.06, swd: 0.06, ic: 0.05, btn: 0.2, lay: 0.08 },
+  AC: { txt: 0, nn: 0.025, sb: 0.05, wm: 0, sx: 0, swd: 0, ic: 0.04, geo: 0.2, btn: 0.22, lay: 0.2 },
   CA: { sx: 0, swd: 0, geo: 0.03, lay: 0.1, drop: 0.16, iv: 0.34, wm: 0.36, txt: 0.4, nn: 0.5, sb: 0.57 }, // entrance
   // B and C rest identically, so these carry no visible change.
   BC: {},
@@ -142,10 +147,15 @@ export const SHEEN = { startAfter: 0.8, duration: 1.5 }; // seconds at response 
 /* ---------------- icon path ---------------- */
 export function makeIconPath(L: Layout, samples = 400) {
   const { iconB } = derive(L);
+  // The icon slides along its own row inside the card, then curves up into the
+  // button slot. It never drops below its resting row, so it never has to be
+  // drawn over the results under the header — something a native build could
+  // not do anyway (the header clips). Fitted to our 351pt layout: 15pt of
+  // clearance from the search field, and the icon stays inside the card.
   const P = [
     [L.iconA.x, L.iconA.y],
-    [L.iconA.x + 0.4 * (iconB.x - L.iconA.x), L.iconA.y + 16],
-    [L.width - 2, L.iconA.y + 24],
+    [iconB.x + 16, L.iconA.y + 1],
+    [L.width + 6, L.iconA.y + 10],
     [iconB.x, iconB.y],
   ];
   const bez = (t: number) => {

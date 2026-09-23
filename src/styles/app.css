@@ -66,7 +66,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .key,
 .mp-tile,
 .cat {
-  transition: transform var(--d-press) var(--ease-out);
+  /* The press spring (response 0.18 s, damping 0.62), baked into linear() —
+     the same physics as every Motion spring in the flow, for the one thing
+     CSS still owns. Quick down, a soft settle back. */
+  transition: transform 0.32s linear(0, 0.1047, 0.3149, 0.5464, 0.7499, 0.9032, 1.0031, 1.0568, 1.0763, 1.0738, 1.0598, 1.0419, 1.0251, 1.0116, 1.0023, 0.9969, 0.9944, 0.9941, 0.9949, 0.9962, 0.9976, 0.9987, 0.9996, 1.0001, 1.0004, 1);
 }
 .btn-neutral:active,
 .btn-lg:active,
@@ -483,31 +486,9 @@ ul { margin: 0; padding: 0; list-style: none; }
    42.57 + 27.43 puts the bar at the frame's y70; rows start at y126. */
 .search-head { flex: none; padding: 70px 16px 8px; }
 
-/* The bar travels from Home's y194 to the overlay's y70 — 124px — rather than
-   teleporting. Opening search is a several-times-a-day action, so this is kept
-   fast and plain: one property, one curve, no flourish. */
-@keyframes bar-rise {
-  from { transform: translateY(124px); }
-  to   { transform: translateY(0); }
-}
-.search-head .searchbar { animation: bar-rise var(--d-overlay) var(--ease-out) both; }
-
-@keyframes suggestion-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-/* Stagger is twice the DS stagger token: 25ms alone reads as one block, and
-   the craft floor is 30. Decorative — it never blocks the tap. */
-.suggestion-item { animation: suggestion-in var(--d-overlay) var(--ease-out) both; }
-.suggestion-item:nth-child(2) { animation-delay: calc(var(--motion-delay-stagger) * 2); }
-.suggestion-item:nth-child(3) { animation-delay: calc(var(--motion-delay-stagger) * 4); }
-.suggestion-item:nth-child(4) { animation-delay: calc(var(--motion-delay-stagger) * 6); }
-
-@keyframes keyboard-in {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-.keyboard { animation: keyboard-in var(--d-nudge) var(--ease-out) both; }
+/* The bar's travel from Home's y194 to y70, the suggestions and the keyboard
+   are Motion springs now (SearchScreen / Keyboard), not CSS keyframes — a
+   keyframe cannot be retargeted mid-flight. */
 .suggestion {
   display: flex; align-items: center; gap: 12px;
   width: 100%; height: 48px; padding: 0 16px;
@@ -570,6 +551,11 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .sheet-body b { font-weight: 700; color: var(--colour-text-n-icon-secondary); }
 .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 17px 16px 16px; }
+/* Wrappers the sheet's content forms on (Sheet.tsx) — layout-neutral. */
+.sheet-action { display: grid; }
+.sheet-action > .btn-lg { width: 100%; }
+.sheet-glyph { display: inline-flex; }
+.sheet-word { display: inline-block; white-space: pre; }
 .btn-lg { height: 48px; border-radius: 12px; font-size: 15px; font-weight: 600; }
 .btn-lg--secondary { background: var(--colour-surface-primary); }
 .btn-lg--primary { background: var(--colour-surface-secondary-inverted); color: var(--colour-text-n-icon-on-surface-bold); }
@@ -792,16 +778,15 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tooltip {
   /* Origin at the trigger: the panel has to look like it came out of the glyph. */
   transform-origin: 100% 0;
-  transition: opacity var(--d-overlay) var(--ease-out), transform var(--d-overlay) var(--ease-out);
   position: absolute; z-index: 3; top: calc(100% + 10px); inset-inline-end: 0; width: 264px;
   padding: 12px 14px 12px; border-radius: 14px;
   background: var(--colour-surface-secondary-inverted);
   color: var(--colour-text-n-icon-on-surface-bold);
   box-shadow: 0 12px 28px -10px rgba(16, 22, 40, 0.45);
 }
-@starting-style {
-  .tooltip { opacity: 0; transform: scale(0.97); }
-}
+/* Opening and closing are Motion springs (components/nudge.tsx). */
+.tooltip-glyph, .tooltip-wrap { display: inline-flex; flex: none; }
+.tooltip-word { display: inline-block; white-space: pre; }
 
 .tooltip::before {
   content: ""; position: absolute; top: -6px; inset-inline-end: 18px;

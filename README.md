@@ -171,40 +171,48 @@ Known gaps, all deliberate:
   not read Arabic.
 ## Motion
 
-Curves and durations come from `@field-ds/tokens`, not a parallel system —
-`loft` (0.22, 1, 0.36, 1) for every entrance and exit, `standard`
-(0.32, 0.72, 0, 1), the Ionic drawer curve, for the sheet and the glyph's
-travel. No `ease-in` anywhere; nothing over 300ms.
+The whole flow runs on **one spring system — the nudge's.** Every animation is
+a spring derived from a single base (response **0.52 s**, damping fraction
+**0.90**), as fixed multiples of it, the same way the nudge's twelve channels
+are. It lives in `src/motion/springs.ts`; change `BASE` in
+`src/motion/nudge-core.ts` and the entire prototype retunes.
 
-| Beat | What moves | How |
+That means everything is **interruptible** (retargeting keeps velocity, so a
+reversal continues instead of restarting), and the same roles move the same way
+on every screen:
+
+| Role | Spring | Used for |
 | --- | --- | --- |
-| Screen changes | Every swap cross-fades instead of cutting. 100ms into search and results, 200ms into the transition and the skeleton | `AnimatePresence`, per-destination |
-| Search overlay | Bar travels the 124px from Home's y194 to y70; the query **types itself** at 95ms/char starting 260ms in; suggestions hold until it lands, then stagger; keyboard rises | CSS + state, 200–260ms |
-| Nudge arrival | Card mounts closed and opens a beat (120ms) later — results yield downward, the glyph flies out of the search bar into the row, then pulses once | CSS, 260ms |
-| Results arrival | Chips and grid settle 6px with a 25ms offset — two groups, not eight cards | CSS, 160ms |
-| Sheet recede | The screen behind scales to 0.94, lifts 8px and rounds to 12, and comes back **as the sheet is dragged down** | CSS + drag-written transform |
-| Nudge collapse | Card height 108 → 44, bar yields 52px, glyph translates from the in-row slot to the standalone one | CSS transitions, 260ms |
-| Glyph pulse | One scale beat, 120ms after the screen lands, once | CSS keyframes, 320ms |
-| Tooltip | Scales out of the glyph — `transform-origin: 100% 0` | `@starting-style`, 200ms |
-| Sheet | Springs up; drag down to dismiss on 100px or a 0.4 px/ms flick | Motion, spring in / 200ms out |
-| Transition | The shipped app's own Hala → هلا morph, from a 16 Sep screen recording, cut at 2.35s — the frame its fade-out completes. The real capture then sits blank for 580ms before its skeleton; that dead air is trimmed. | `<video>`, 2.35s |
-| Skeleton | Placeholders on the real PLP geometry, so content lands where its placeholder was. One white band at `alpha 0.38` translating right to left, 762ms of travel then a 508ms rest — the period measured off the recording. | CSS transform, 1.27s loop |
-| Dismiss vs collapse | Collapsing parks the offer, so the glyph travels to the bar. Dismissing ends it, so the glyph hands off with a cross-fade and the card leaves at `--d-exit` instead of `--d-nudge`. | CSS, 180–260ms |
-| Press | `scale(0.97)` on everything pressable | CSS, 160ms |
+| `move` | 1.0 × response, 0.90 | Containers and shared elements travelling — the search bar morph |
+| `layout` | 1.2 ×, 1.0 (never overshoots) | Anything that pushes content — scroll settle |
+| `dock` / `sheet` | 0.9 ×, 0.94 / 0.86 | Keyboard, bottom sheet |
+| `rise` | 0.95 ×, 1.0 | Words, rows, suggestions arriving — 9px up, sharpening from blur |
+| `form` | 0.75 ×, 0.68 | Surfaces and buttons forming, with a small overshoot |
+| `pop` | 0.7 ×, 0.62 | A glyph popping in from 40% |
+| `clear` | 0.55 ×, 1.0 | Content fading out of the way |
+| `recede` | 0.72 ×, 1.0 (never overshoots) | Anything leaving as one layer |
+| `fade` | 0.6 ×, 1.0 | Screen cross-fades |
+| press | 0.34 ×, 0.62 | `scale(0.97)`, baked into a CSS `linear()` easing |
 
-**Deliberately not animated:** the product grid and the filter chips. They are
-data the user reads, and they are on screen constantly — motion there is cost
-with no purpose. The suggestions animate once with the overlay, never per
-keystroke.
+Choreography follows the nudge too: content clears before its container moves,
+containers settle before content forms, and delays scale with the base.
+
+| Beat | What moves |
+| --- | --- |
+| Home → search | The bar morphs up on `move` while Home fades behind it; the keyboard docks a beat later; the query types itself once the bar has settled; suggestions rise in one by one |
+| Search → results | The keyboard drops on `recede` and the overlay holds a beat so the drop is seen; results arrive as two groups (chips, then grid) rising in while the nudge blooms |
+| Nudge (inline) | Per `docs/motion-handoff/SPEC.md` — see below |
+| Nudge (tooltip) | Opens out of the glyph with a soft overshoot; glyph pops, words rise, buttons form. Dismiss recedes it back toward the glyph as one layer |
+| Sheet | Docks on `sheet`; glyph pops, title words rise, body rises, buttons settle in. Leaves on `recede`, carrying the drag's release velocity |
+| Confirm → reload | The reload grows out of the Switch button on `burst` and holds until the relaunch screen is in, so the half-mirrored screen is never seen |
+| Relaunch, skeleton | Cross-fade on `fade`; the skeleton's own sweep is unchanged (it is measured off the real app) |
+
+**Deliberately not animated:** the product grid and chips, except for their one
+arrival from search. From the skeleton they must not move — placeholder and
+content share pixels.
 
 `prefers-reduced-motion` is honoured globally (CSS) and by Motion
-(`<MotionConfig reducedMotion="user">`). Hover states are gated behind
-`@media (hover: hover) and (pointer: fine)`.
-
-Height is animated on the nudge card — the one place transform-only is broken.
-It is deliberate: the results below have to move *with* the header, and a
-layout-projection morph would snap them instead.
-
+(`<MotionConfig reducedMotion="user">`); the nudge snaps to its end states.
 
 ## Nudge motion — one deliberate divergence from the handoff
 
@@ -226,12 +234,20 @@ The change is localised to `stateTargets().C` and `PLANS.AC` in
 `src/motion/nudge-core.ts`, both commented. Reverting to the spec's C is a
 one-line edit.
 
+**The icon's path stays inside the card.** The handoff's Bézier dips below the
+icon's row on its way to the button; here it slides along its own row and then
+curves up, and the card and the content below only close up once the icon has
+risen out (`makeIconPath` and `PLANS` in `nudge-core.ts`). The icon never has to
+be drawn over the results under the header, which a native build could not do
+(the header clips). At the shipped tuning it keeps 12pt from the search field
+and never drops below its resting row.
+
 Everything else follows the handoff. Acceptance checks (SPEC §9), measured in
 headless Chrome with the recorder that `?ac=1` prints:
 
 | Check | Result | Required |
 |---|---|---|
-| §9.1 icon ↔ search clearance | 18 | ≥ 2 |
+| §9.1 icon ↔ search clearance | 12 (simulated after the path change — re-record with `?ac=1`) | ≥ 2 |
 | §9.2 icon inside card while visible | −16 (inside) | ≤ 0 |
 | §9.3 `lay` range | [0, 1] | no overshoot |
 

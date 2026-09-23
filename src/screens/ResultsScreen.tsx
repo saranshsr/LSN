@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { animate } from "motion/react";
+import { AnimatePresence, animate, motion } from "motion/react";
 
 import { StatusBar, BottomNav, ChipRow } from "../components/chrome";
 import { SearchBar } from "../components/SearchBar";
@@ -7,6 +7,7 @@ import { ProductCard } from "../components/ProductCard";
 import { GlyphButton, TooltipNudge } from "../components/nudge";
 import { NudgeHeader } from "../components/NudgeHeader";
 import { useRubberBand } from "../motion/useRubberBand";
+import { SPR, at, rise } from "../motion/springs";
 import { SCROLL, scrollDecision, shouldSettleToTop, type StateId } from "../motion/nudge-core";
 import { QUERY, type Locale } from "../data/copy";
 import { products } from "../data/products";
@@ -65,13 +66,14 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
     settle.current = setTimeout(() => {
       if (!shouldSettleToTop(AS_STATE[state], el.scrollTop)) return;
       animate(el.scrollTop, 0, {
-        type: "spring", bounce: 0, duration: 0.42,
+        ...SPR.layout,
         onUpdate: (v) => { el.scrollTop = v; },
       });
     }, 90);
   };
 
   const tooltipOpen = locale === "en" && state === "offered" && variant === "tooltip";
+  const arrive = entrance === "search";
 
   return (
     <div className="screen" data-entrance={entrance}>
@@ -90,7 +92,9 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
           <div className="plp-row tooltip-anchor">
             <SearchBar query={QUERY} back />
             <GlyphButton standalone onClick={onSwitch} />
-            {tooltipOpen ? <TooltipNudge onSwitch={onSwitch} onDismiss={onDismiss} /> : null}
+            <AnimatePresence>
+              {tooltipOpen ? <TooltipNudge key="tooltip" onSwitch={onSwitch} onDismiss={onDismiss} /> : null}
+            </AnimatePresence>
           </div>
         </header>
       )}
@@ -101,11 +105,27 @@ export function ResultsScreen({ locale, variant, nudge: state, entrance, onSwitc
         onScroll={onScroll}
         style={{ paddingTop: locale === "ar" ? 106.57 : variant === "inline" ? inset : 108.57 }}
       >
-        <ChipRow locale={locale} />
-        <div className="grid">
+        {/* Arriving from search, the content rises in as two groups — chips,
+            then the grid — while the nudge blooms above it. Arriving from the
+            skeleton it must NOT move: placeholder and content share pixels. */}
+        <motion.div
+          initial={arrive ? "hidden" : false}
+          animate="shown"
+          variants={rise}
+          transition={{ ...SPR.rise, delay: at(0.12) }}
+        >
+          <ChipRow locale={locale} />
+        </motion.div>
+        <motion.div
+          className="grid"
+          initial={arrive ? "hidden" : false}
+          animate="shown"
+          variants={rise}
+          transition={{ ...SPR.rise, delay: at(0.2) }}
+        >
           {products.map((pr) => <ProductCard key={pr.slug} product={pr} locale={locale} />)}
           {products.map((pr) => <ProductCard key={`${pr.slug}-2`} product={pr} locale={locale} />)}
-        </div>
+        </motion.div>
       </div>
 
       <BottomNav locale={locale} />

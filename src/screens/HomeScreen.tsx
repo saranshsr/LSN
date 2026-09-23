@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { StatusBar, BottomNav } from "../components/chrome";
 import { SearchBar } from "../components/SearchBar";
 import { Icon } from "../icons/Icon";
+import { SPR } from "../motion/springs";
 import { chrome, type Locale } from "../data/copy";
 
 /**
@@ -39,7 +40,7 @@ export function HomeScreen({ locale, onSearch }: { locale: Locale; onSearch: () 
             <button className="home-heart" aria-label="Saved"><Icon name="system-heart-filled" size={20} /></button>
           </div>
 
-          <motion.div className="home-search" layoutId="searchbar">
+          <motion.div className="home-search" layoutId="searchbar" transition={{ layout: SPR.move }}>
             <SearchBar placeholder={c.searchPlaceholder} height={48} onClick={onSearch} />
           </motion.div>
         </div>
