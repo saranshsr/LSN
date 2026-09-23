@@ -214,7 +214,42 @@ export function SoloDevice({ variant, beat, collapseAt, live }: { variant: Varia
     return () => clearTimeout(t);
   }, [collapseAt]);
 
-  return <Device variant={variant} state={state} setState={setState} pinned={!live && collapseAt === undefined} />;
+  // Presenting (?device=) gets a restart too. It never sits on the phone —
+  // that would cover the app mid-demo — so it goes beside it, or wraps below
+  // on a phone-width screen; and R restarts with nothing on screen at all.
+  // Parked capture beats (?solo=) stay bare.
+  useEffect(() => {
+    if (!live) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== "r") return;
+      setState(initialState);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [live]);
+
+  const device = <Device variant={variant} state={state} setState={setState} pinned={!live && collapseAt === undefined} />;
+  if (!live) return device;
+  return (
+    <div className="solo-live">
+      {device}
+      <RestartButton label="Restart the prototype from the home screen" onRestart={() => setState(initialState)} keyHint />
+    </div>
+  );
+}
+
+function RestartButton({ label, onRestart, keyHint }: { label: string; onRestart: () => void; keyHint?: boolean }) {
+  return (
+    <button type="button" className="lane-restart" onClick={onRestart} aria-label={label}
+      aria-keyshortcuts={keyHint ? "R" : undefined}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M2.75 8a5.25 5.25 0 1 0 1.54-3.71" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M2.5 2.75v2.9h2.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      Restart
+      {keyHint ? <kbd className="lane-restart-key" aria-hidden="true">R</kbd> : null}
+    </button>
+  );
 }
 
 type Props = { variant: Variant; name: string; tag: string; note: string };
@@ -227,9 +262,14 @@ export function Lane({ variant, name, tag, note }: Props) {
 
   return (
     <section className="lane">
+      {/* Restart lives in the header row, above the phone: below it, it sat
+          under 812px of device and the step rail, off-screen on most laptops. */}
       <div className="lane-head">
-        <h2 className="lane-name">{name}</h2>
-        <span className="lane-tag">{tag}</span>
+        <div className="lane-title">
+          <h2 className="lane-name">{name}</h2>
+          <span className="lane-tag">{tag}</span>
+        </div>
+        <RestartButton label={`Restart the ${name} prototype from the home screen`} onRestart={() => setState(initialState)} />
       </div>
       <p className="lane-note">{note}</p>
 
@@ -245,7 +285,6 @@ export function Lane({ variant, name, tag, note }: Props) {
       </ol>
 
       <div className="lane-foot">
-        <button className="lane-btn" onClick={() => setState(initialState)}>Reset</button>
         <span className="lane-state">
           {state.screen} · {state.locale} · {state.nudge}{state.sheetOpen ? " · sheet" : ""}
         </span>

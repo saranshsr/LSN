@@ -149,7 +149,22 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 .lane { width: 375px; }
 
-.lane-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 14px; }
+.lane-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
+.lane-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
+/* 44px target, 14px label, ~12:1 contrast on the shell, and a focus ring you
+   can see from across the room when tabbing through during a review. */
+.lane-restart {
+  flex: none; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 16px;
+  border: 1px solid #4a5364; border-radius: 10px; background: #1c212b;
+  font-size: 14px; font-weight: 600; color: #f5f7fa;
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.lane-restart:active { transform: scale(0.97); }
+.lane-restart:focus-visible { outline: 2px solid #ffd600; outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .lane-restart:hover { background: #262c38; border-color: #6b7487; }
+}
 .lane-name { margin: 0; font-size: 15px; font-weight: 600; color: #e8eaf0; }
 .lane-tag { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #6b7487; }
 .lane-note { margin: 0 0 14px; font-size: 12px; line-height: 19px; color: #7c8598; }
@@ -876,6 +891,22 @@ ul { margin: 0; padding: 0; list-style: none; }
 .solo { background: #fff; min-height: 100%; }
 .solo .device { margin: 0; }
 .solo .device { border-radius: 0; box-shadow: none; }
+/* Device mode: the phone stays pinned at the origin; Restart sits beside it,
+   or wraps below on a phone-width screen — never over the app. */
+.solo-live { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; }
+.solo-live .device { flex: none; }
+.solo-live .lane-restart {
+  margin: 16px; border-color: #d0d4dd; background: #fff; color: #1d2539;
+}
+.solo-live .lane-restart:focus-visible { outline-color: #0f61ff; }
+@media (hover: hover) and (pointer: fine) {
+  .solo-live .lane-restart:hover { background: #f2f3f7; border-color: #989fb3; }
+}
+.lane-restart-key {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  border: 1px solid currentColor; border-radius: 5px; opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600;
+}
 
 .mp-badge .mp-caps { font-size: 9px; letter-spacing: 0.04em; }
 
@@ -892,7 +923,17 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tt-header { overflow: visible; }
 .tt-stage { position: absolute; height: 44px; }
 .tt-pop { position: absolute; left: 0; top: 0; width: 351px; height: 110px; transform-origin: 44px 51px; pointer-events: none; }
-.tt-notch { position: absolute; left: 0; top: 0; fill: var(--base-colour-brand-blue-50); transform-origin: 50% 100%; }
+.tt-notch { position: absolute; left: 0; top: 0; fill: #e1efff; transform-origin: 50% 100%; }
+/* Figma 251:100008 tints the tooltip on its own: #e1efff at the caret end
+   easing to #eef6ff — darker on the LEFT, the reverse of the inline card, and
+   between different stops, so it is not the shared .nudge-grad. The caret
+   takes the same #e1efff (its drawn fill), so it reads as part of the bar. */
+.tt-card .nudge-grad { background: linear-gradient(90deg, #e1efff 0%, #eef6ff 100%); }
+/* Its Switch is surface/primary-inverted with no border (251:106757); the
+   inline pill is #1d2539 with a #101628 border. Two drawn fills. */
+.tt-header .btn-neutral--bold .pill-surface {
+  background: var(--colour-surface-primary-inverted); border-color: transparent;
+}
 .tt-card { position: absolute; left: 0; top: 0; overflow: hidden; background: var(--colour-surface-primary); }
 .tt-inner { position: absolute; left: 0; top: 0; width: 351px; height: 110px; }
 .tt-shine {

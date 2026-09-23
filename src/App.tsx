@@ -102,8 +102,8 @@ function Page({ style, pick }: { style: CollapseStyle; pick: (s: CollapseStyle) 
         <Lane
           variant="tooltip"
           name="Tooltip"
-          tag="derived — no frame yet"
-          note="The nudge floats off the glyph instead of taking layout — it scales out of the icon it belongs to, and nothing below it moves. Same copy, same two actions, plus a cross."
+          tag="mirrored from Figma"
+          note="A tinted bar under the search field, its caret pointing at the Arabic query — it floats over the results instead of taking layout, so nothing below it moves. Its own copy, “Want noon in العربية?”, and the same two actions."
         />
       </div>
     </div>
