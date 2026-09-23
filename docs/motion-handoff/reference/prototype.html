@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language nudge morph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e9ecf2; --panel:#ffffff; --ink:#161b26; --muted:#6b7385; --line:#dde2eb; --chip:#f1f3f7;
+  --g1:#3b6cf6; --g2:#f08a2b; --g3:#9aa3b5; --g4:#23a36b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0f1218; --panel:#171b23; --ink:#eef1f6; --muted:#8d95a7; --line:#2a303c; --chip:#212632; }
+}
+:root[data-theme="dark"]{ --bg:#0f1218; --panel:#171b23; --ink:#eef1f6; --muted:#8d95a7; --line:#2a303c; --chip:#212632; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:720px;margin:0 auto;padding:40px 20px 60px}
+h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.5;max-width:62ch}
+.modebar{margin-bottom:14px}
+
+/* ---------- device (always light: it's app UI) ---------- */
+.canvasWrap{border-radius:28px;background:#fff;border:1px solid var(--line);overflow:hidden;position:relative}
+.fit{position:relative;width:100%}
+.device{position:absolute;left:0;top:0;width:566px;height:540px;transform-origin:0 0;overflow:hidden;background:#fff}
+.scroller{position:absolute;inset:0;overflow-y:hidden;overscroll-behavior:contain;scrollbar-width:none}
+.scroller::-webkit-scrollbar{display:none}
+.scroll-mode .scroller{overflow-y:auto}
+.feed{padding:188px 20px 40px;will-change:transform}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chips i{display:block;height:32px;border-radius:16px;background:#f2f4f8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prod i{display:block;border-radius:18px;background:#f5f6f9;height:170px}
+.prod b{display:block;height:10px;border-radius:5px;background:#eef0f4;margin-top:10px;width:80%}
+.prod b+b{width:45%;margin-top:7px}
+.header{position:absolute;left:0;top:0;width:566px;padding:20px 20px 0;background:#fff;z-index:3}
+.header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#eceff4;opacity:var(--hair,0)}
+.hint{position:absolute;right:14px;bottom:14px;z-index:4;font:500 12px Inter,system-ui,sans-serif;color:#6b7385;background:rgba(255,255,255,.9);border:1px solid #eceff4;border-radius:10px;padding:6px 10px;display:none;pointer-events:none}
+.scroll-mode .hint{display:block}
+
+.stage{position:relative;width:526px}
+.bounds .stage *{outline:1px dashed rgba(59,108,246,.35);outline-offset:-1px}
+.card{position:absolute;overflow:hidden}
+.card .grad{position:absolute;inset:0;background:linear-gradient(180deg,#f4f7fd 0%,#e9eff9 100%)}
+.card .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(150,170,205,.28) 1px,transparent 1.2px);background-size:5px 5px;
+  -webkit-mask-image:radial-gradient(120% 90% at 0% 100%,#000 0%,transparent 55%);mask-image:radial-gradient(120% 90% at 0% 100%,#000 0%,transparent 55%)}
+.card .flat{position:absolute;inset:0;background:#fbfcfe;border:1px solid #e6eaf2;border-radius:inherit}
+.card .inner{position:absolute;left:0;top:0;width:526px;height:162px}
+.wm{position:absolute;left:222px;top:84px;width:120px;height:120px;fill:#fff;opacity:.75}
+.prompt{position:absolute;left:66px;top:111px;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#1b2130;white-space:nowrap;line-height:26px}
+.pill{position:absolute;top:100px;height:48px;border-radius:24px;font:500 17px/48px Inter,system-ui,sans-serif;letter-spacing:-.01em;text-align:center;cursor:pointer;border:0;background:transparent;padding:0}
+.pill .pbg{position:absolute;inset:0;border-radius:24px;border:1px solid transparent}
+.pill .plab{position:relative;display:block}
+.pill.ghost{left:290px;width:112px;color:#1b2130}
+.pill.ghost .pbg{background:rgba(255,255,255,.8);border-color:#fff}
+.pill.solid{left:414px;width:98px;color:#fff}
+.pill.solid .pbg{background:#1c2436;border-color:#0f1522}
+.prompt .w{display:inline-block;white-space:pre}
+.pill:focus-visible,.tbtn:focus-visible{outline:2px solid #3b6cf6;outline-offset:2px}
+.search{position:absolute;background:#fff;height:66px}
+.search .ring{position:absolute;inset:0;border:1px solid #eceff5;border-radius:inherit;pointer-events:none}
+.chev{position:absolute;left:22px;top:21px;width:24px;height:24px}
+.q{position:absolute;left:59px;top:0;font:500 17px/66px "IBM Plex Sans Arabic","Geeza Pro",Tahoma,sans-serif;color:#1b2130}
+.divider{position:absolute;top:16px;width:1px;height:34px;background:#eceef3}
+.cam{position:absolute;top:19px;width:28px;height:28px}
+.tbtn{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;z-index:5;border-radius:20px}
+.ticon{position:absolute;left:0;top:0;fill:#1b2130;pointer-events:none;z-index:4}
+.trail{position:absolute;left:0;top:0;pointer-events:none;z-index:6;display:none;overflow:visible}
+.showpath .trail{display:block}
+
+.btnbg{position:absolute;left:460px;top:15px;width:66px;height:66px;border-radius:20px;background:#fbfcfe;border:1px solid #e6eaf2;z-index:2;pointer-events:none;transform-origin:50% 50%}
+.resetBtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 13px Inter,system-ui,sans-serif;padding:7px 12px;border-radius:10px;cursor:pointer}
+.search{z-index:1}.card{z-index:0}
+/* shimmer: a cool light that travels along the rim, with a faint tint behind it */
+.sheen{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;--mx:-200px}
+.sheen .rim,.sheen .tint{position:absolute;inset:0;border-radius:inherit}
+.sheen .rim{padding:1.5px;
+  background:radial-gradient(200px 150px at var(--mx) 35%,rgba(92,134,255,.95) 0%,rgba(150,120,255,.55) 38%,rgba(120,200,255,0) 72%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.sheen .tint{background:radial-gradient(220px 170px at var(--mx) 40%,rgba(98,138,255,.13) 0%,rgba(140,120,255,.06) 45%,rgba(0,0,0,0) 72%)}
+.glint{position:absolute;top:-10px;left:0;width:34px;height:68px;opacity:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.28),rgba(255,255,255,0));transform:skewX(-20deg)}
+.pill.solid .pbg{overflow:hidden}
+.playBtn{border:0;background:#1c2436;color:#fff;font:500 14px Inter,system-ui,sans-serif;padding:10px 16px;border-radius:12px;cursor:pointer}
+body.m-scroll .playBtn{display:none}
+/* ---------- controls ---------- */
+.controls{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
+.row+.row{margin-top:16px}
+.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font:500 14px Inter,system-ui,sans-serif;padding:8px 14px;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg.big button{padding:10px 18px;font-size:15px}
+label.lab{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
+input[type=range]{width:140px;accent-color:#3b6cf6}
+.val{font-variant-numeric:tabular-nums;color:var(--ink);min-width:40px;display:inline-block}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+.spacer{flex:1}
+.kbd{font-size:12px;color:var(--muted)}
+.kbd b{font-weight:500;color:var(--ink);background:var(--chip);border-radius:6px;padding:2px 6px}
+.only-scroll{display:none}
+body.m-scroll .only-toggle{display:none}
+body.m-scroll .only-scroll{display:flex}
+body.s-trig .scrub-only{display:none!important}
+body.s-scrub .trig-only{display:none!important}
+.progress{flex:1;min-width:160px;height:6px;border-radius:3px;background:var(--chip);overflow:hidden}
+.progress span{display:block;height:100%;background:#3b6cf6;width:0}
+.graphBox{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+canvas{width:100%;height:120px;display:block}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
+</style>
+</head>
+<body class="s-trig">
+<main>
+  <h1>Language nudge morph</h1>
+  <p class="sub">The nudge enters by blooming out from behind the search field, then drops open; the icon pops, the words rise in one by one, and the buttons form before their labels settle. The prompt card is absorbed up into the search field while the translate icon swoops under it and lands in its own button. “Not now” dismisses the nudge entirely and the search field takes the full width.</p>
+
+  <div class="seg big modebar" role="group" aria-label="Mode">
+    <button id="mToggle" aria-pressed="true">Toggle</button>
+    <button id="mScroll" aria-pressed="false">Scroll-mapped</button>
+  </div>
+
+  <div class="canvasWrap" id="canvasWrap">
+    <div class="fit" id="fit">
+      <div class="device" id="device">
+        <div class="scroller" id="scroller">
+          <div class="feed" id="feed">
+            <div class="chips"><i style="width:84px"></i><i style="width:110px"></i><i style="width:72px"></i><i style="width:96px"></i></div>
+            <div class="grid" id="grid"></div>
+          </div>
+        </div>
+        <div class="header" id="header">
+          <div class="stage" id="stage">
+            <div class="card" id="card">
+              <div class="grad" id="grad"></div>
+              <div class="dots" id="dots"></div>
+              <div class="sheen" id="sheen"><div class="tint"></div><div class="rim"></div></div>
+              <div class="flat" id="flat"></div>
+              <div class="inner" id="inner">
+                <svg class="wm" id="wm" viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+                <div class="prompt" id="prompt"><span class="w">Switch </span><span class="w">app </span><span class="w">to </span><span class="w">Arabic?</span></div>
+                <button class="pill ghost" id="notnow"><span class="pbg"></span><span class="plab">Not now</span></button>
+                <button class="pill solid" id="switch"><span class="pbg"><span class="glint" id="glint"></span></span><span class="plab">Switch</span></button>
+              </div>
+            </div>
+            <div class="search" id="search">
+              <div class="ring" id="ring"></div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#1b2130" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+              <div class="q" dir="rtl">عبايات</div>
+              <div class="divider" id="divider"></div>
+              <svg class="cam" id="cam" viewBox="0 0 28 28" fill="none" stroke="#1b2130" stroke-width="2"><rect x="3" y="5.5" width="22" height="17" rx="5"/><circle cx="15.5" cy="14" r="4"/><circle cx="8.6" cy="10.6" r="1.2" fill="#1b2130" stroke="none"/></svg>
+            </div>
+            <div class="btnbg" id="btnbg"></div>
+            <button class="tbtn" id="tbtn" aria-label="Change app language"></button>
+            <svg class="ticon" id="ticon" viewBox="0 0 24 24" width="24" height="24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+            <svg class="trail" id="trail" width="526" height="162"><path id="trailPath" fill="none" stroke="#f08a2b" stroke-width="1.5" stroke-dasharray="3 3"/></svg>
+          </div>
+        </div>
+        <div class="hint">Scroll the feed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="row only-toggle">
+      <div class="seg big" role="group" aria-label="State">
+        <button id="stA" aria-pressed="true">Nudge</button>
+        <button id="stB" aria-pressed="false">Collapsed</button>
+        <button id="stC" aria-pressed="false">Dismissed</button>
+      </div>
+      <button class="playBtn" id="playEntrance">Play entrance</button>
+      <div class="seg" role="group" aria-label="Speed" id="speed">
+        <button data-s="1" aria-pressed="true">1×</button>
+        <button data-s="0.5" aria-pressed="false">0.5×</button>
+        <button data-s="0.25" aria-pressed="false">0.25×</button>
+        <button data-s="0.1" aria-pressed="false">0.1×</button>
+      </div>
+      <span class="spacer"></span>
+      <span class="kbd"><b>Space</b> nudge ↔ collapsed</span>
+    </div>
+    <div class="row">
+      <label class="lab">Response <input type="range" id="resp" min="0.25" max="1.2" step="0.01" value="0.52"><span class="val" id="respV">0.52s</span></label>
+      <label class="lab">Damping <input type="range" id="damp" min="0.5" max="1" step="0.01" value="0.90"><span class="val" id="dampV">0.90</span></label>
+    </div>
+    <div class="row only-toggle">
+      <label class="check"><input type="checkbox" id="loop"> Auto-loop</label>
+      <label class="check"><input type="checkbox" id="stag" checked> Stagger</label>
+    </div>
+    <div class="row only-scroll">
+      <div class="seg" role="group" aria-label="Scroll behaviour">
+        <button id="sTrig" aria-pressed="true">Triggered</button>
+        <button id="sScrub" aria-pressed="false">Scrubbed</button>
+      </div>
+      <label class="lab trig-only">Trigger after <input type="range" id="thr" min="12" max="160" step="1" value="48"><span class="val" id="thrV">48px</span></label>
+    </div>
+    <div class="row only-scroll scrub-only">
+      <label class="lab">Collapse distance <input type="range" id="dist" min="60" max="240" step="1" value="120"><span class="val" id="distV">120px</span></label>
+      <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+    </div>
+    <div class="row only-scroll">
+      <label class="check"><input type="checkbox" id="snap" checked> <span class="trig-only">Settle back to top if released before the trigger</span><span class="scrub-only">Snap to nearest state on release</span></label>
+      <label class="check scrub-only"><input type="checkbox" id="follow"> Spring-follow scroll</label>
+      <button class="resetBtn" id="resetBtn">Reset nudge</button>
+      <span class="spacer"></span>
+      <span class="kbd"><b>↑</b><b>↓</b> step</span>
+    </div>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="pathOn"> Show icon path</label>
+      <label class="check"><input type="checkbox" id="bnd"> Show bounds</label>
+      <label class="check"><input type="checkbox" id="blurOn" checked> Blur fades</label>
+    </div>
+    <div class="graphBox">
+      <canvas id="graph"></canvas>
+      <div class="legend">
+        <span style="--c:var(--g1)">Card absorb</span>
+        <span style="--c:var(--g2)">Icon travel</span>
+        <span style="--c:#c04fd6">Button</span>
+        <span style="--c:var(--g4)">Layout</span>
+        <span style="--c:var(--g3)">Prompt fade</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/*GEOM*/
+const L = (a,b,t) => a + (b-a)*t;
+const C = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
+const smooth = (a,b,x) => { const t = C((x-a)/(b-a)); return t*t*(3-2*t); };
+
+// Frames measured from the two designs (CSS px).
+const SEARCH = { A:{x:16,w:496}, B:{x:0,w:447}, C:{x:0,w:526} };
+const CARD_A = {x:0,y:0,w:526,h:162};
+const ICON = { s0:28, s1:30 };
+
+// Icon path: cubic Bézier that swoops under the search field and rises into the button,
+// re-parameterised by arc length so the spring drives even travel along it.
+const P = [[38,124],[220,140],[524,148],[493,48]];
+const bez = t => { const u=1-t; return [0,1].map(i => u*u*u*P[0][i] + 3*u*u*t*P[1][i] + 3*u*t*t*P[2][i] + t*t*t*P[3][i]); };
+const LUT = (() => { const n=400, pts=[], len=[0]; for (let i=0;i<=n;i++) pts.push(bez(i/n));
+  for (let i=1;i<=n;i++) len.push(len[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
+  return {pts, len, total: len[n], n}; })();
+const OVR = 140; // px of travel per unit of spring overshoot past either end
+function pathAt(s){ // s = 0..1 by distance; extrapolates along end tangents for spring overshoot
+  const {pts,len,total,n} = LUT;
+  if (s <= 0){ const d=[pts[1][0]-pts[0][0], pts[1][1]-pts[0][1]], m=Math.hypot(...d); return [pts[0][0]+d[0]/m*s*OVR, pts[0][1]+d[1]/m*s*OVR]; }
+  if (s >= 1){ const d=[pts[n][0]-pts[n-1][0], pts[n][1]-pts[n-1][1]], m=Math.hypot(...d); return [pts[n][0]+d[0]/m*(s-1)*OVR, pts[n][1]+d[1]/m*(s-1)*OVR]; }
+  const target = s*total; let lo=0, hi=n; while (hi-lo>1){ const mid=(lo+hi)>>1; (len[mid] < target ? lo=mid : hi=mid); }
+  const f = (target-len[lo])/(len[hi]-len[lo]); return [L(pts[lo][0],pts[hi][0],f), L(pts[lo][1],pts[hi][1],f)];
+}
+
+// v: geo (card absorbed 0→1), sx, swd (search px), ic (icon path 0→1), iv (icon visible), btn, lay
+function geom(v){
+  const sx = v.sx, sw = v.swd, sRight = sx + sw;
+  const g = v.geo;
+  // card grows from the search rect → a halo wrapping it (drop=1) → full nudge (drop=0)
+  const haloH = L(CARD_A.h, 96, v.drop || 0);
+  const cardX = L(CARD_A.x, sx, g), cardY = L(CARD_A.y, 15, g);
+  const cardW = Math.max(1, L(CARD_A.w, sw, g)), cardH = Math.max(1, L(haloH, 66, g));
+  const [ix, iy] = pathAt(v.ic);
+  const is = L(ICON.s0, ICON.s1, C(v.ic));
+  const stageH = L(162, 96, v.lay);
+  return {sx, sw, sRight, cardX, cardY, cardW, cardH, cardBot: cardY+cardH, ix, iy, is, stageH};
+}
+
+class Spring {
+  constructor(v){ this.v=v; this.t=v; this.vel=0; this.resp=.5; this.damp=.85; }
+  step(dt){ const k=Math.pow(2*Math.PI/this.resp,2), c=4*Math.PI*this.damp/this.resp;
+    this.vel += (-k*(this.v-this.t) - c*this.vel)*dt; this.v += this.vel*dt; }
+  get settled(){ const sc = Math.abs(this.t) > 5 ? 100 : 1; return Math.abs(this.v-this.t) < 1e-4*sc && Math.abs(this.vel) < 1e-3*sc; }
+  snap(){ this.v=this.t; this.vel=0; }
+}
+const CHANNELS = ['geo','drop','sx','swd','ic','iv','btn','lay','txt','nn','sb','wm'];
+function tuneSprings(S,R,Z){
+  S.geo.resp=R;       S.geo.damp=Z;
+  S.sx.resp=R*.9;     S.sx.damp=Z*.92;
+  S.swd.resp=R*.9;    S.swd.damp=Z*.92;
+  S.ic.resp=R*1.08;   S.ic.damp=C(Z*.8,.35,1);
+  S.btn.resp=R*.8;    S.btn.damp=C(Z*.72,.35,1);
+  S.iv.resp=R*.6;     S.iv.damp=1;
+  S.lay.resp=R*1.2;   S.lay.damp=1;            // layout shift never overshoots
+  S.drop.resp=R*1.05; S.drop.damp=C(Z*.82,.35,1); // entrance drop lands with a soft bounce
+  S.wm.resp=R*.7;     S.wm.damp=1;
+  for (const k of ['txt','nn','sb']) { S[k].resp=R*.55; S[k].damp=1; }
+}
+const STATE = {
+  A:{geo:0, drop:0, sx:16, swd:496, ic:0, iv:1, btn:0, lay:0, txt:0, nn:0, sb:0, wm:0},
+  B:{geo:1, sx:0,  swd:447, ic:1, iv:1, btn:1, lay:1, txt:1, nn:1, sb:1, wm:1},
+  C:{geo:1, sx:0,  swd:526,        iv:0, btn:0, lay:1, txt:1, nn:1, sb:1, wm:1}
+};
+const FADE_OUT = {txt:0, nn:.025, sb:.05, wm:0};
+const FADE_IN  = {wm:.1, txt:.15, nn:.19, sb:.23};
+const SHEEN_AT = .8, SHEEN_DUR = 1.5;
+const PLAN = {
+  AB:{...FADE_OUT, geo:.03, sx:.06, swd:.06, ic:.05, btn:.2, lay:.08},
+  BA:{btn:0, ic:0, sx:.08, swd:.08, geo:.05, lay:0, ...FADE_IN},
+  AC:{...FADE_OUT, iv:0, geo:.03, sx:.06, swd:.06, lay:.08},
+  // entrance: search insets → halo blooms around it → card drops open → icon pops → copy and buttons follow
+  CA:{sx:0, swd:0, geo:.03, lay:.1, drop:.16, iv:.34, wm:.36, txt:.4, nn:.5, sb:.57},
+  BC:{btn:0, iv:0, sx:.04, swd:.04},
+  CB:{sx:0, swd:0, btn:.14, iv:.18}
+};
+// scroll: collapse fraction u (nudge → collapsed)
+const RANGES = { txt:[0,.3], nn:[.05,.35], sb:[.1,.4], wm:[0,.35], geo:[.08,.72], sx:[.12,.75], swd:[.12,.75], ic:[.1,.92], btn:[.62,1], lay:[0,1] };
+function mapScroll(u){
+  const o = {iv:1};
+  for (const k in RANGES){ const [a,b]=RANGES[k], t = k==='lay' ? C(u) : smooth(a,b,u);
+    o[k] = L(STATE.A[k], STATE.B[k], t); }
+  return o;
+}
+/*END*/
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const S = {}; for (const k of CHANNELS) S[k] = new Spring(STATE.A[k] ?? 0);
+  let R=.52, Z=.90, speed=1, state='A', simT=0, queue=[], mode='toggle', blurOn=true, scrollLocked=false;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  tuneSprings(S,R,Z);
+
+  $('grid').innerHTML = Array.from({length:8},()=>'<div class="prod"><i></i><b></b><b></b></div>').join('');
+  const card=$('card'), grad=$('grad'), dots=$('dots'), flat=$('flat'), inner=$('inner'),
+        search=$('search'), ring=$('ring'), divider=$('divider'), cam=$('cam'), btnbg=$('btnbg'),
+        ticon=$('ticon'), tbtn=$('tbtn'), stage=$('stage'), header=$('header'), feed=$('feed'),
+        wm=$('wm'), prompt=$('prompt'), nn=$('notnow'), sw=$('switch'), scroller=$('scroller');
+  flat.style.display='none';
+
+  let entering = false, sheenStart = -1;
+  function fx(el, v, drift){
+    if (entering){ // enter from behind the icon and from above, like it's being unrolled
+      el.style.opacity = C(1 - v*1.15);
+      el.style.filter = blurOn && v > .001 ? `blur(${(C(v)*6).toFixed(2)}px)` : 'none';
+      el.style.transform = `translate(${(-v*drift*1.2).toFixed(2)}px,${(-v*12).toFixed(2)}px) scale(${(1 - C(v)*.08).toFixed(4)})`;
+      el.style.pointerEvents = v > .5 ? 'none' : 'auto';
+      return;
+    }
+    el.style.opacity = C(1 - v*1.15);
+    el.style.filter = blurOn && v > .001 ? `blur(${(C(v)*7).toFixed(2)}px)` : 'none';
+    el.style.transform = `translate(${(v*drift).toFixed(2)}px,${(-v*10).toFixed(2)}px) scale(${(1 - C(v)*.06).toFixed(4)})`;
+    el.style.pointerEvents = v > .5 ? 'none' : 'auto';
+  }
+  // ---------- entrance content formation ----------
+  const words = [...prompt.querySelectorAll('.w')];
+  const parts = [...words, ...document.querySelectorAll('.pill > .pbg,.plab')];
+  const neutral = el => { el.style.opacity=1; el.style.filter='none'; el.style.transform='none'; el.style.pointerEvents='auto'; };
+  let partsDirty = false;
+  function resetParts(){ if (!partsDirty) return; for (const el of parts){ el.style.opacity=''; el.style.filter=''; el.style.transform=''; } partsDirty=false; }
+  // each word rises into place, sharpening as it lands, flowing out from the icon
+  function formWords(e){
+    partsDirty = true; const n = words.length, step = .13, span = 1 - step*(n-1);
+    words.forEach((el,i) => { const p = C((e - i*step)/span), q = 1-p;
+      el.style.opacity = C(p*1.3);
+      el.style.filter = blurOn && q > .001 ? `blur(${(q*4).toFixed(2)}px)` : 'none';
+      el.style.transform = `translateY(${(q*9).toFixed(2)}px)`;
+    });
+  }
+  // the pill surface forms first (with a little spring), then its label settles in
+  function formPill(btn, e){
+    partsDirty = true; const bg = btn.firstElementChild, lab = btn.lastElementChild;
+    const s = Math.max(0, e);
+    bg.style.opacity = C(e*1.8);
+    bg.style.transform = `scale(${L(.72,1,s).toFixed(4)},${L(.6,1,s).toFixed(4)})`;
+    const l = C((e - .35)/.65), lq = 1-l;
+    lab.style.opacity = l;
+    lab.style.filter = blurOn && lq > .001 ? `blur(${(lq*3).toFixed(2)}px)` : 'none';
+    lab.style.transform = `translateY(${(lq*5).toFixed(2)}px)`;
+    btn.style.pointerEvents = e > .5 ? 'auto' : 'none';
+  }
+  const val = () => { const o={}; for (const k of CHANNELS) o[k]=S[k].v; return o; };
+
+  function render(){
+    const v = val(), g = geom(v), ga = C(v.geo);
+    Object.assign(card.style,{left:g.cardX+'px',top:g.cardY+'px',width:g.cardW+'px',height:g.cardH+'px',
+      borderRadius:L(26,20,ga)+'px', background:'#fff'});
+    grad.style.opacity = C(1 - v.geo*1.25);
+    dots.style.opacity = C(1 - v.geo*2);
+    inner.style.transform = `translate(${-g.cardX}px,${-g.cardY}px)`;
+    Object.assign(search.style,{left:g.sx+'px',top:'15px',width:g.sw+'px',borderRadius:L(18,20,ga)+'px'});
+    ring.style.opacity = C((v.geo-.35)/.55);
+    divider.style.left = (g.sw - L(62,59,ga)) + 'px';
+    cam.style.left = (g.sw - L(34,31,ga) - 14) + 'px';
+
+    const iv = C(v.iv), isc = g.is/24 * L(entering ? .4 : .55, 1, v.iv);
+    ticon.style.transform = `translate(${g.ix-12}px,${g.iy-12}px) scale(${isc})`;
+    // one-time light sweep across the card as the entrance settles
+    const sp = sheenStart < 0 ? -1 : (simT - sheenStart)/(SHEEN_DUR*R/.52);
+    const sheen = $('sheen'), glint = $('glint');
+    if (sp >= 0 && sp <= 1){ const ease = 1 - Math.pow(1-sp, 3);           // decelerates as it crosses
+      const env = Math.pow(Math.sin(Math.PI*sp), 1.2), x = L(-160, 700, ease);
+      sheen.style.opacity = env;
+      sheen.style.setProperty('--mx', (x - g.cardX) + 'px');
+      // as the light crosses the primary button, a soft glint runs over it
+      glint.style.opacity = env * C(1 - Math.abs(x - 463)/140);
+      glint.style.transform = `translateX(${(x - 414 - 17).toFixed(1)}px) skewX(-20deg)`;
+    } else { sheen.style.opacity = 0; glint.style.opacity = 0; }
+    ticon.style.opacity = iv;
+    ticon.style.filter = blurOn && iv < .999 ? `blur(${((1-iv)*5).toFixed(2)}px)` : 'none';
+
+    const b = v.btn;
+    btnbg.style.opacity = C(b*1.4);
+    btnbg.style.transform = `scale(${Math.max(0, L(.35,1,b))})`;
+
+    if (entering){
+      neutral(prompt); neutral(nn); neutral(sw);
+      formWords(1 - S.txt.v);
+      formPill(nn, 1 - S.nn.v); formPill(sw, 1 - S.sb.v);
+      const w = 1 - S.wm.v;
+      wm.style.opacity = .75*C(w);
+      wm.style.transform = `scale(${L(1.12,1,w).toFixed(4)})`;
+    } else {
+      resetParts();
+      fx(prompt,S.txt.v,18); fx(nn,S.nn.v,12); fx(sw,S.sb.v,8);
+      wm.style.opacity = .75*C(1 - S.wm.v);
+      wm.style.transform = `translate(${S.wm.v*30}px,${S.wm.v*-14}px) rotate(${S.wm.v*-8}deg)`;
+    }
+    Object.assign(tbtn.style,{left:'460px',top:'15px',width:'66px',height:'66px',pointerEvents: b>.6 ? 'auto':'none'});
+
+    stage.style.height = g.stageH + 'px';
+    header.style.height = (20 + Math.max(g.stageH, g.cardBot) + 6) + 'px';
+    feed.style.transform = mode==='toggle' || scrollLocked || scrollStyle==='trig' ? `translateY(${g.stageH - 162}px)` : 'none';
+    header.style.setProperty('--hair', mode==='scroll' ? C((scroller.scrollTop - (162 - g.stageH))/20) : 0);
+    trailPoint(g, iv);
+  }
+
+  // ---------- path trail ----------
+  let trail=[]; const tp=$('trailPath');
+  function trailPoint(g, iv){
+    if (!$('pathOn').checked || iv < .5) return;
+    const p=[g.ix,g.iy], l=trail[trail.length-1];
+    if (!l || Math.hypot(p[0]-l[0],p[1]-l[1])>1.5){ trail.push(p); if(trail.length>600) trail.shift();
+      tp.setAttribute('d','M'+trail.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L')); }
+  }
+  const clearTrail=()=>{ trail=[]; tp.setAttribute('d',''); };
+
+  // ---------- state machine ----------
+  function setPressed(){ for (const [id,s] of [['stA','A'],['stB','B'],['stC','C']]) $(id).setAttribute('aria-pressed', state===s); }
+  function go(to){
+    if (to===state) return;
+    const key = state+to, plan = PLAN[key], tgt = STATE[to];
+    queue=[]; clearTrail();
+    // icon re-enters from its resting spot when it was hidden
+    if (to!=='C' && S.iv.v < .05){ S.ic.t = S.ic.v = tgt.ic; S.ic.vel = 0; }
+    entering = key==='CA';
+    tuneFollow();
+    if (entering){ S.nn.damp = S.sb.damp = .68; S.nn.resp = S.sb.resp = R*.75; S.iv.damp = .62; S.iv.resp = R*.7; S.txt.resp = R*.95; }
+    // card is fully hidden inside the search field, so it can be re-shaped as a halo invisibly
+    if (entering && S.geo.v > .98){ S.drop.t = S.drop.v = 1; S.drop.vel = 0; }
+    sheenStart = entering && $('stag').checked ? simT + SHEEN_AT*R/.52 : -1;
+    const stag = $('stag').checked;
+    for (const k of CHANNELS){ if (tgt[k]===undefined) continue;
+      const d = plan && plan[k]!==undefined ? plan[k] : 0;
+      queue.push({at: simT + (stag?d*R/.52:0), k, v:tgt[k]}); }
+    queue.sort((a,b)=>a.at-b.at);
+    state = to; setPressed();
+    if (reduce){ for (const q of queue) S[q.k].t=q.v; queue=[]; Object.values(S).forEach(s=>s.snap()); render(); return; }
+    kick();
+  }
+
+  // ---------- frame loop ----------
+  let running=false, last=0, settledAt=0, loopIx=0; const hist=[], HW=3000, LOOP=['B','A','C','A'];
+  function kick(){ if(!running){ running=true; last=performance.now(); requestAnimationFrame(tick); } }
+  function tick(now){
+    const dt=Math.min(.05,(now-last)/1000); last=now;
+    const sdt = dt*(mode==='toggle'?speed:1), N=Math.max(1,Math.ceil(sdt*480));
+    for (let i=0;i<N;i++){ const h=sdt/N; simT+=h;
+      while (queue.length && queue[0].at<=simT){ const q=queue.shift(); S[q.k].t=q.v; }
+      for (const s of Object.values(S)) s.step(h); }
+    render();
+    const done = !queue.length && Object.values(S).every(s=>s.settled);
+    if (!done) sample(now);
+    while (hist.length && now-hist[0].t>HW) hist.shift();
+    draw(now);
+    const sheenOn = sheenStart >= 0 && simT - sheenStart < SHEEN_DUR*R/.52;
+    if (done && !sheenOn) entering = false;
+    const looping = mode==='toggle' && $('loop').checked;
+    if (done){ Object.values(S).forEach(s=>s.snap()); render();
+      if (looping){ if(!settledAt) settledAt=now; if(now-settledAt>900){ settledAt=0; go(LOOP[loopIx++ % LOOP.length]); } }
+    } else settledAt=0;
+    if (!done || sheenOn || looping || hist.length) requestAnimationFrame(tick); else running=false;
+  }
+  const norm = (k,v) => k==='swd' ? (v-496)/(447-496) : v;
+  function sample(now){ hist.push({t:now, geo:S.geo.v, ic:S.ic.v, btn:S.btn.v, lay:S.lay.v, x:S.txt.v}); }
+
+  // ---------- scroll mode ----------
+  let D=120, T=48, snapTimer=0, scrollStyle='trig';
+  function onScroll(){
+    if (mode!=='scroll' || scrollLocked) return;
+    const y = scroller.scrollTop;
+    if (scrollStyle==='trig'){
+      // threshold with hysteresis: collapse past T, re-open only when back near the top
+      $('prog').style.width = (C(y/T)*100)+'%';
+      if (state==='A' && y > T) go('B');
+      else if (state==='B' && y < Math.min(T*.35, 16)) go('A');
+    } else {
+      const u=C(y/D); $('prog').style.width=(u*100)+'%';
+      const m=mapScroll(u);
+      if ($('follow').checked && !reduce){ for (const k in m) S[k].t=m[k]; kick(); }
+      else { for (const k in m){ S[k].t=S[k].v=m[k]; S[k].vel=0; } render(); sample(performance.now()); kick(); }
+    }
+    clearTimeout(snapTimer); snapTimer=setTimeout(snapNow,140);
+  }
+  function snapNow(){
+    if (mode!=='scroll' || scrollLocked || !$('snap').checked) return;
+    const y=scroller.scrollTop, beh=reduce?'auto':'smooth';
+    if (scrollStyle==='trig'){ if (state==='A' && y>.5 && y<=T) scroller.scrollTo({top:0,behavior:beh}); }
+    else if (y>.5 && y<D-.5) scroller.scrollTo({top:y>D/2?D:0, behavior:beh});
+  }
+  scroller.addEventListener('scroll',onScroll,{passive:true});
+  function dismissInScroll(){
+    scrollLocked = true; tuneSprings(S,R,Z);
+    if (scrollStyle==='scrub'){ const y=scroller.scrollTop; scroller.style.overflowY='hidden'; state = C(y/D) > .5 ? 'B' : 'A'; }
+    go('C');
+    $('resetBtn').style.visibility='visible';
+  }
+  function setScrollStyle(s){
+    scrollStyle=s;
+    document.body.classList.toggle('s-trig',s==='trig'); document.body.classList.toggle('s-scrub',s==='scrub');
+    $('sTrig').setAttribute('aria-pressed',s==='trig'); $('sScrub').setAttribute('aria-pressed',s==='scrub');
+    setMode('scroll');
+  }
+  function resetScroll(){ scrollLocked=false; scroller.style.overflowY=''; setMode('scroll'); }
+  function tuneFollow(){ if (mode==='scroll' && scrollStyle==='scrub' && !scrollLocked) for (const k in S){ S[k].resp=.2; S[k].damp=1; } else tuneSprings(S,R,Z); }
+
+  function snapTo(s){ queue=[]; for (const k of CHANNELS){ if (STATE[s][k]===undefined) continue; S[k].t=S[k].v=STATE[s][k]; S[k].vel=0; }
+    state=s; setPressed(); render(); }
+  function playEntrance(){ clearTrail(); snapTo('C'); if (mode==='toggle' || scrollStyle==='trig') setTimeout(()=>go('A'), 250); }
+  function setMode(m){
+    mode=m; queue=[]; clearTrail(); scrollLocked=false; scroller.style.overflowY='';
+    document.body.classList.toggle('m-scroll',m==='scroll');
+    $('canvasWrap').classList.toggle('scroll-mode',m==='scroll');
+    $('mToggle').setAttribute('aria-pressed',m==='toggle'); $('mScroll').setAttribute('aria-pressed',m==='scroll');
+    scroller.scrollTop=0;
+    for (const k of CHANNELS){ S[k].t=S[k].v=STATE.A[k]; S[k].vel=0; }
+    state='A'; setPressed(); tuneFollow(); render(); $('prog').style.width='0%';
+    $('resetBtn').style.visibility='hidden';
+    if (!(m==='scroll' && scrollStyle==='scrub')) playEntrance();
+  }
+
+  // ---------- graph ----------
+  const cv=$('graph'), ctx=cv.getContext('2d');
+  function draw(now){
+    const dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+    if (cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+    const cs=getComputedStyle(document.documentElement), y=v=>H-10-(v+.15)/1.3*(H-20);
+    ctx.strokeStyle=cs.getPropertyValue('--line'); ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    for (const v of [0,1]){ ctx.beginPath(); ctx.moveTo(0,y(v)); ctx.lineTo(W,y(v)); ctx.stroke(); }
+    ctx.setLineDash([]); ctx.fillStyle=cs.getPropertyValue('--muted'); ctx.font='11px Inter, system-ui, sans-serif';
+    ctx.fillText('End',4,y(1)-5); ctx.fillText('Start',4,y(0)-5);
+    for (const [k,c] of [['geo',cs.getPropertyValue('--g1')],['ic',cs.getPropertyValue('--g2')],['btn','#c04fd6'],['lay',cs.getPropertyValue('--g4')],['x',cs.getPropertyValue('--g3')]]){
+      ctx.strokeStyle=c; ctx.lineWidth=2; ctx.beginPath();
+      hist.forEach((p,j)=>{ const X=W-(now-p.t)/HW*W; j?ctx.lineTo(X,y(p[k])):ctx.moveTo(X,y(p[k])); }); ctx.stroke();
+    }
+  }
+
+  // ---------- fit ----------
+  const fit=$('fit'), device=$('device');
+  function resize(){ const s=Math.min(1,fit.clientWidth/566); device.style.transform=`scale(${s})`; device.style.left=Math.max(0,(fit.clientWidth-566*s)/2)+'px'; fit.style.height=(540*s)+'px'; }
+  new ResizeObserver(resize).observe(fit); resize();
+
+  // ---------- controls ----------
+  $('mToggle').onclick=()=>setMode('toggle'); $('mScroll').onclick=()=>setMode('scroll');
+  $('playEntrance').onclick=playEntrance;
+  $('stA').onclick=()=>go('A'); $('stB').onclick=()=>go('B'); $('stC').onclick=()=>go('C');
+  nn.onclick=()=> mode==='toggle' ? go('C') : dismissInScroll();
+  sw.onclick=()=> mode==='toggle' || scrollStyle==='trig' ? go('B') : scroller.scrollTo({top:D,behavior:'smooth'});
+  tbtn.onclick=()=>{ if (mode==='toggle') return go('A'); if (scrollStyle==='trig') go('A'); scroller.scrollTo({top:0,behavior:'smooth'}); };
+  $('resetBtn').onclick=resetScroll;
+  $('sTrig').onclick=()=>setScrollStyle('trig'); $('sScrub').onclick=()=>setScrollStyle('scrub');
+  $('thr').oninput=e=>{ T=+e.target.value; $('thrV').textContent=T+'px'; };
+  document.addEventListener('keydown',e=>{
+    const tag=document.activeElement.tagName;
+    if (mode==='toggle' && e.code==='Space' && !/INPUT|BUTTON/.test(tag)){ e.preventDefault(); go(state==='A'?'B':'A'); }
+    if (mode==='scroll' && !scrollLocked && (e.key==='ArrowDown'||e.key==='ArrowUp') && tag!=='INPUT'){ e.preventDefault();
+      scroller.scrollTop += (e.key==='ArrowDown'?1:-1)*(scrollStyle==='trig'?8:Math.max(4,D/12)); }
+  });
+  $('speed').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; speed=+b.dataset.s;
+    for (const x of $('speed').children) x.setAttribute('aria-pressed',x===b); });
+  $('resp').oninput=e=>{ R=+e.target.value; $('respV').textContent=R.toFixed(2)+'s'; tuneFollow(); };
+  $('damp').oninput=e=>{ Z=+e.target.value; $('dampV').textContent=Z.toFixed(2); tuneFollow(); };
+  $('dist').oninput=e=>{ D=+e.target.value; $('distV').textContent=D+'px'; onScroll(); };
+  $('loop').onchange=e=>{ if(e.target.checked){ loopIx=0; kick(); } };
+  $('bnd').onchange=e=>$('canvasWrap').classList.toggle('bounds',e.target.checked);
+  $('pathOn').onchange=e=>{ $('canvasWrap').classList.toggle('showpath',e.target.checked); clearTrail(); render(); };
+  $('blurOn').onchange=e=>{ blurOn=e.target.checked; render(); };
+  $('follow').onchange=()=>{ tuneFollow(); onScroll(); };
+
+  $('resetBtn').style.visibility='hidden';
+  snapTo('C'); draw(performance.now());
+  setTimeout(()=>go('A'), 600);
+})();
+</script>
+
+</body>
+</html>

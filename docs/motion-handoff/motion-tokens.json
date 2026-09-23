@@ -1,0 +1,50 @@
+{
+  "base": { "response": 0.52, "dampingFraction": 0.90, "mass": 1,
+    "note": "stiffness = (2π/response)², damping = 4π·dampingFraction/response. All delays are in seconds at response 0.52; scale them by (response / 0.52)." },
+  "springs": {
+    "geo":  { "responseMul": 1.00, "damping": "base",        "resolved": { "response": 0.520, "dampingFraction": 0.900, "stiffness": 146.0, "damping": 21.75 } },
+    "sx":   { "responseMul": 0.90, "damping": "base*0.92",   "resolved": { "response": 0.468, "dampingFraction": 0.828, "stiffness": 180.2, "damping": 22.23 } },
+    "swd":  { "responseMul": 0.90, "damping": "base*0.92",   "resolved": { "response": 0.468, "dampingFraction": 0.828, "stiffness": 180.2, "damping": 22.23 } },
+    "ic":   { "responseMul": 1.08, "damping": "base*0.80",   "resolved": { "response": 0.562, "dampingFraction": 0.720, "stiffness": 125.2, "damping": 16.11 } },
+    "btn":  { "responseMul": 0.80, "damping": "base*0.72",   "resolved": { "response": 0.416, "dampingFraction": 0.648, "stiffness": 228.1, "damping": 19.57 } },
+    "iv":   { "responseMul": 0.60, "damping": 1,             "resolved": { "response": 0.312, "dampingFraction": 1.000, "stiffness": 405.6, "damping": 40.28 } },
+    "lay":  { "responseMul": 1.20, "damping": 1,             "resolved": { "response": 0.624, "dampingFraction": 1.000, "stiffness": 101.4, "damping": 20.14 } },
+    "drop": { "responseMul": 1.05, "damping": "base*0.82",   "resolved": { "response": 0.546, "dampingFraction": 0.738, "stiffness": 132.4, "damping": 16.99 } },
+    "wm":   { "responseMul": 0.70, "damping": 1,             "resolved": { "response": 0.364, "dampingFraction": 1.000, "stiffness": 298.0, "damping": 34.52 } },
+    "txt":  { "responseMul": 0.55, "damping": 1,             "resolved": { "response": 0.286, "dampingFraction": 1.000, "stiffness": 482.6, "damping": 43.94 } },
+    "nn":   { "responseMul": 0.55, "damping": 1,             "resolved": { "response": 0.286, "dampingFraction": 1.000, "stiffness": 482.6, "damping": 43.94 } },
+    "sb":   { "responseMul": 0.55, "damping": 1,             "resolved": { "response": 0.286, "dampingFraction": 1.000, "stiffness": 482.6, "damping": 43.94 } }
+  },
+  "entranceSpringOverrides": {
+    "nn":  { "responseMul": 0.75, "dampingFraction": 0.68, "resolved": { "stiffness": 259.6, "damping": 21.91 } },
+    "sb":  { "responseMul": 0.75, "dampingFraction": 0.68, "resolved": { "stiffness": 259.6, "damping": 21.91 } },
+    "iv":  { "responseMul": 0.70, "dampingFraction": 0.62, "resolved": { "stiffness": 298.0, "damping": 21.40 } },
+    "txt": { "responseMul": 0.95, "dampingFraction": 1.00, "resolved": { "stiffness": 161.8, "damping": 25.44 } }
+  },
+  "states": {
+    "A_nudge":     { "geo": 0, "drop": 0, "search": "inset", "ic": 0, "iv": 1, "btn": 0, "lay": 0, "txt": 0, "nn": 0, "sb": 0, "wm": 0 },
+    "B_collapsed": { "geo": 1,            "search": "besideButton", "ic": 1, "iv": 1, "btn": 1, "lay": 1, "txt": 1, "nn": 1, "sb": 1, "wm": 1 },
+    "C_dismissed": { "geo": 1,            "search": "fullWidth",            "iv": 0, "btn": 0, "lay": 1, "txt": 1, "nn": 1, "sb": 1, "wm": 1 }
+  },
+  "delays": {
+    "A_to_B": { "txt": 0, "nn": 0.025, "sb": 0.05, "wm": 0, "geo": 0.03, "sx": 0.06, "swd": 0.06, "ic": 0.05, "btn": 0.20, "lay": 0.08 },
+    "B_to_A": { "btn": 0, "ic": 0, "sx": 0.08, "swd": 0.08, "geo": 0.05, "lay": 0, "wm": 0.10, "txt": 0.15, "nn": 0.19, "sb": 0.23 },
+    "A_to_C": { "txt": 0, "nn": 0.025, "sb": 0.05, "wm": 0, "iv": 0, "geo": 0.03, "sx": 0.06, "swd": 0.06, "lay": 0.08 },
+    "C_to_A_entrance": { "sx": 0, "swd": 0, "geo": 0.03, "lay": 0.10, "drop": 0.16, "iv": 0.34, "wm": 0.36, "txt": 0.40, "nn": 0.50, "sb": 0.57 },
+    "B_to_C": { "btn": 0, "iv": 0, "sx": 0.04, "swd": 0.04 },
+    "C_to_B": { "sx": 0, "swd": 0, "btn": 0.14, "iv": 0.18 }
+  },
+  "iconPath": {
+    "type": "cubicBezier, arc-length parameterised",
+    "P0": "iconA (icon centre in nudge state)",
+    "P1": { "x": "iconA.x + 0.40 * (iconB.x - iconA.x)", "y": "iconA.y + 16" },
+    "P2": { "x": "containerWidth - 2", "y": "iconA.y + 24" },
+    "P3": "iconB (centre of collapsed button)",
+    "overshootPxPerUnit": 140
+  },
+  "sheen": { "startAfterEntrance": 0.80, "duration": 1.5, "xFrom": -160, "xTo": "containerWidth + 174", "ease": "easeOutCubic", "envelope": "sin(πp)^1.2",
+    "rimWidth": 1.5, "rimGradient": ["rgba(92,134,255,.95) 0%", "rgba(150,120,255,.55) 38%", "rgba(120,200,255,0) 72%"], "rimEllipse": [200, 150],
+    "tintGradient": ["rgba(98,138,255,.13) 0%", "rgba(140,120,255,.06) 45%", "transparent 72%"], "tintEllipse": [220, 170],
+    "glint": { "target": "Switch button", "width": 34, "color": "rgba(255,255,255,.28)", "skewDeg": -20, "falloffPx": 140 } },
+  "scroll": { "triggerPx": 48, "reopenBelowPx": "min(trigger*0.35, 16)", "settleToTopIfReleasedBeforeTrigger": true }
+}
