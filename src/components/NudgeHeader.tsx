@@ -46,7 +46,7 @@ const PAD_B = { open: 4, shut: 14 };
 const WORDS = nudge.label.split(" ");
 /** Our watermark rests at 0.1, not the handoff's 0.75. Its curves are kept;
  *  only the amplitude is scaled, so the design is unchanged. */
-const WM_REST = 0.1;
+const WM_REST = 1; // the Figma glyph (303:13394) carries its own white radial fade
 const NEUTRAL = { opacity: 1, blur: 0, tx: 0, ty: 0, sx: 1, sy: 1 };
 
 type Props = {
@@ -99,6 +99,7 @@ export function NudgeHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
   const grad = useRef<HTMLDivElement>(null);
   const tint = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
+  const halftone = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLDivElement>(null);
   const icon = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -131,6 +132,9 @@ export function NudgeHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
     put(grad, { opacity: String(g.card.gradientOpacity) });
     // Children stay put in header space; the clip reveals and hides them.
     put(inner, { transform: `translate(${g.contentCounterOffset.x}px, ${g.contentCounterOffset.y}px)` });
+    // The halftone stays put in header space like the content, but lives on the
+    // card's own layer so its linear-dodge blends with the card's gradient.
+    put(halftone, { transform: `translate(${g.contentCounterOffset.x}px, ${g.contentCounterOffset.y}px)`, opacity: String(0.3 * g.card.gradientOpacity) });
 
     put(search, {
       transform: `translate(${g.search.x}px, ${g.search.y}px)`,
@@ -260,10 +264,11 @@ export function NudgeHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
       <div className="nudge-stage" style={{ left: STAGE_X, top: STAGE_Y, width: LAYOUT.width }}>
         <div className="nudge-card" ref={card}>
           <div className="nudge-grad" ref={grad} />
+          <div className="nudge-halftone" ref={halftone} aria-hidden="true" />
           <div className="nudge-tint" ref={tint} />
           <div className="nudge-inner" ref={inner}>
             <span className="nudge-watermark" ref={watermark}>
-              <Icon name="system-language-bold" size={72} />
+              <img src="/img/nudge/watermark.svg" width={160} height={104} alt="" />
             </span>
             <div className="nudge-row">
               <span className="nudge-icon-slot" />

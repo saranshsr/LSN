@@ -92,7 +92,7 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
   const r = {
     header: useRef<HTMLElement>(null), pop: useRef<HTMLDivElement>(null), notch: useRef<SVGSVGElement>(null),
     card: useRef<HTMLDivElement>(null), grad: useRef<HTMLDivElement>(null), shine: useRef<HTMLDivElement>(null),
-    inner: useRef<HTMLDivElement>(null), wm: useRef<HTMLSpanElement>(null), label: useRef<HTMLParagraphElement>(null),
+    inner: useRef<HTMLDivElement>(null), ht: useRef<HTMLDivElement>(null), wm: useRef<HTMLSpanElement>(null), label: useRef<HTMLParagraphElement>(null),
     nn: useRef<HTMLButtonElement>(null), sb: useRef<HTMLButtonElement>(null),
     search: useRef<HTMLDivElement>(null), tile: useRef<HTMLButtonElement>(null), ring: useRef<HTMLSpanElement>(null),
   };
@@ -151,6 +151,7 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
     s(r.card.current, { transform: `translate(${cardX}px, ${cardY}px)`, width: `${cardW}px`, height: `${cardH}px`, borderRadius: `${cardR}px`, opacity: String(clamp(v.nt * 2)) });
     s(r.grad.current, { opacity: String(clamp(1 - g * 1.3)) });
     s(r.inner.current, { transform: `translate(${-cardX}px, ${-cardY}px)` });
+    s(r.ht.current, { transform: `translate(${-cardX}px, ${-cardY}px)`, opacity: String(0.3 * clamp(1 - g * 1.3)) });
     s(r.notch.current, {
       opacity: String(clamp(v.nt * 1.5) * clamp(1 - g * 2.2)),
       transform: `translate(${NOTCH.tip - NOTCH.w / 2}px, ${cardY - NOTCH.h + lerp(-12, 0, v.nt)}px) scale(${Math.max(0, lerp(0.5, 1, v.nt))}, ${Math.max(0, v.nt)})`,
@@ -234,6 +235,7 @@ export function TooltipHeader({ state, onSwitch, onDismiss, onHeight }: Props) {
           </svg>
           <div className="tt-card" ref={r.card}>
             <div className="nudge-grad" ref={r.grad} />
+            <div className="tt-halftone" ref={r.ht} aria-hidden="true" />
             <div className="tt-shine" ref={r.shine} />
             <div className="tt-inner" ref={r.inner}>
               <span className="tt-watermark" ref={r.wm}><Icon name="system-language-bold" size={56} /></span>

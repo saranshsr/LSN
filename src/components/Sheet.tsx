@@ -73,7 +73,7 @@ export function ConfirmSheet({ open, locale, onCancel, onConfirm }: Props) {
           >
             <div className="sheet-grabber" />
             <div className={locale === "ar" ? "sheet sheet--ar" : "sheet"} role="dialog" aria-label={c.title}>
-              <div className="sheet-aura" aria-hidden="true"><i /><i /><i /></div>
+              <div className="sheet-aura" aria-hidden="true" />
               <div className="sheet-header">
                 <Icon name="system-language-bold" size={48} />
               </div>

@@ -258,15 +258,24 @@ ul { margin: 0; padding: 0; list-style: none; }
   position: absolute; top: 0; left: 0; overflow: hidden;
   background: var(--colour-surface-primary);
 }
-.nudge-grad { position: absolute; inset: 0; background: var(--base-colour-brand-blue-50); }
+/* Card fill, from 303:13393: #F5FAFF → #EBF4FF along Figma's gradient handles. */
+.nudge-grad { position: absolute; inset: 0; background: linear-gradient(104.2deg, #f5faff 0.5%, #ebf4ff 76.3%); }
+/* The halftone (303:13395): #85BDFF dots at 30%, linear dodge, denser toward
+   the bottom-left. Rendered from Figma's own dot geometry. */
+.nudge-halftone {
+  position: absolute; left: 0; top: 0; width: 351px; height: 108px; pointer-events: none;
+  background: url("/img/nudge/halftone-nudge.png") 0 0 / 351px 108px no-repeat;
+  opacity: 0.3; mix-blend-mode: plus-lighter;
+}
 .nudge-inner { position: absolute; inset: 0; }
 
+/* The glyph (303:13394) at x143 y49 — exported with its white radial fade,
+   edge stroke and blue glow; the SVG's own 44pt glow padding puts it at 99, 4.4. */
 .nudge-watermark {
-  position: absolute; left: 187px; top: 50px;
-  color: var(--base-colour-brand-blue-300);
-  filter: drop-shadow(0 -0.6px 44px rgba(82, 154, 255, 0.04));
-  pointer-events: none;
+  position: absolute; left: 99px; top: 4.4px; width: 160px; height: 104px;
+  transform-origin: 80px 77.6px; pointer-events: none;
 }
+.nudge-watermark img { display: block; }
 
 .nudge-row {
   position: absolute; left: 10px; top: 66px; width: 331px; height: 32px;
@@ -540,7 +549,8 @@ ul { margin: 0; padding: 0; list-style: none; }
   margin: 0 12px; height: 280px;
   border-radius: 16px;
   box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12);
-  background: linear-gradient(180deg, #dfe9f9 0, #eef1f7 90px, var(--colour-surface-tertiary) 130px);
+  /* 278:89201: a flat #F2F3F7 — the light at the top is the halftone. */
+  background: var(--colour-surface-tertiary);
 }
 .sheet-header {
   height: 93px; padding-top: 13px;
@@ -570,37 +580,25 @@ ul { margin: 0; padding: 0; list-style: none; }
   color: var(--colour-text-n-icon-tertiary);
 }
 
-/* Ambient background: three soft pools of the brand blues drifting slowly
-   behind the glyph, faded out before the copy. A continuous loop is the one
-   job CSS keeps — there is no gesture or target for a spring here. It fades
-   in once the sheet has docked, and is off under reduced motion. */
+/* The sheet's background, exactly where Figma draws it: the Header Slot's
+   halftone (278:89203) — #85BDFF dots at 28%, densest top-left, fading out by
+   120pt. It is the one thing that moves in the sheet: the dots breathe and
+   drift a few points, very slowly, so the surface feels alive while the copy
+   stays still. A continuous loop has no target for a spring, so CSS owns it.
+   It fades in once the sheet has docked; under reduced motion it holds still. */
 .sheet-aura {
-  position: absolute; inset: 0 0 auto 0; height: 150px; z-index: 0; pointer-events: none;
-  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent);
-          mask-image: linear-gradient(180deg, #000 45%, transparent);
-  animation: aura-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  position: absolute; left: 0; top: 0; width: 351px; height: 120px; z-index: 0; pointer-events: none;
+  background: url("/img/nudge/halftone-sheet.png") 0 0 / 351px 120px no-repeat;
+  opacity: 0.28;
+  animation: aura-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both, aura-breathe 7s ease-in-out 1.5s infinite alternate;
 }
-.sheet-aura i { position: absolute; border-radius: 50%; }
-.sheet-aura i:nth-child(1) {
-  width: 220px; height: 150px; left: 20px; top: -40px;
-  background: radial-gradient(closest-side, rgba(92, 134, 255, 0.28), transparent);
-  animation: aura-a 9s ease-in-out infinite alternate;
+.sheet-aura i { display: none; }
+@keyframes aura-in { from { opacity: 0; } to { opacity: 0.28; } }
+@keyframes aura-breathe {
+  from { opacity: 0.28; transform: translate(0, 0); }
+  to   { opacity: 0.4;  transform: translate(6px, 2px); }
 }
-.sheet-aura i:nth-child(2) {
-  width: 200px; height: 140px; right: 10px; top: -30px;
-  background: radial-gradient(closest-side, rgba(150, 120, 255, 0.2), transparent);
-  animation: aura-b 11s ease-in-out infinite alternate;
-}
-.sheet-aura i:nth-child(3) {
-  width: 260px; height: 120px; left: 50px; top: 20px;
-  background: radial-gradient(closest-side, rgba(110, 196, 255, 0.22), transparent);
-  animation: aura-c 13s ease-in-out infinite alternate;
-}
-@keyframes aura-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes aura-a { from { transform: translate(-18px, 0) scale(1); } to { transform: translate(46px, 14px) scale(1.12); } }
-@keyframes aura-b { from { transform: translate(20px, 8px) scale(1.08); } to { transform: translate(-50px, -6px) scale(0.95); } }
-@keyframes aura-c { from { transform: translate(24px, 6px) scale(0.96); } to { transform: translate(-30px, -10px) scale(1.1); } }
-@media (prefers-reduced-motion: reduce) { .sheet-aura i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet-aura { animation: aura-in 0.01s both; } }
 .btn-lg { height: 48px; border-radius: 12px; font-size: 15px; font-weight: 600; }
 .btn-lg--secondary { background: var(--colour-surface-primary); }
 .btn-lg--primary { background: var(--colour-surface-secondary-inverted); color: var(--colour-text-n-icon-on-surface-bold); }
@@ -905,3 +903,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 .plp-loading { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: var(--colour-surface-primary); pointer-events: none; }
 .plp-loading-chips { padding: 8px 12px 0; }
 .plp-loading-grid { padding-top: 12px; }
+
+/* The inline nudge's halftone, anchored to the tooltip card's bottom edge. */
+.tt-halftone {
+  position: absolute; left: 0; top: 58px; width: 351px; height: 52px; pointer-events: none;
+  background: url("/img/nudge/halftone-nudge.png") 0 100% / 351px 108px no-repeat;
+  opacity: 0.3; mix-blend-mode: plus-lighter;
+}
