@@ -29,7 +29,8 @@ npm install
 npm run dev        # http://localhost:5193
 ```
 
-- `?confirm=sheet2` / `?confirm=instant` — open on a confirm style
+- `?sheet=2` — open the "with the sheet" section on option 2 (keys 1 / 2 switch it)
+- `?confirm=sheet2` / `?confirm=instant` — the confirm style for `?device=` and `?solo=`
 - `?device=en` / `?device=ar` — one bare 375 × 812 phone to present from (R restarts)
 - `?solo=ar&beat=sheet` — park a phone on a beat (home, search, offered, sheet,
   transition, skeleton, switched, toast)

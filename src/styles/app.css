@@ -1164,3 +1164,20 @@ ul { margin: 0; padding: 0; list-style: none; }
   transition: transform 160ms var(--ease-out);
 }
 .v5-toast-undo:active { transform: scale(0.97); }
+
+/* ── v5 shell: versions laid out like the Figma page ─────────────────────── */
+.shell-index { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+.shell-index a {
+  display: inline-flex; gap: 8px; align-items: baseline; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid #333a49; background: #151922; color: #b9c1d1; font-size: 13px; text-decoration: none;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.shell-index a b { font-weight: 600; color: #e8eaf0; }
+@media (hover: hover) and (pointer: fine) { .shell-index a:hover { background: #1c212b; color: #e8eaf0; } }
+.version { max-width: 1180px; margin: 0 auto; padding: 36px 0 8px; border-top: 1px solid #232835; scroll-margin-top: 16px; }
+.version + .version { margin-top: 48px; }
+.version-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; max-width: 830px; margin: 0 auto 28px; }
+.version-title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #f5f7fa; }
+.version-ids { margin-inline-end: 8px; padding: 2px 8px; border-radius: 6px; background: #232a38; font-size: 13px; font-weight: 600; color: #9fb4ff; vertical-align: 2px; }
+.version-sub { margin: 6px 0 0; max-width: 52ch; font-size: 13px; line-height: 20px; color: #8b94a8; }
+.version-toggle { margin: 0; }

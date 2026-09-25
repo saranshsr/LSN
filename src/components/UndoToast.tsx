@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import type { Locale } from "../data/copy";
 import { TOAST, TOAST_MS } from "../flow/v5";
-import { SPR } from "../motion/springs";
+import { SPR, at } from "../motion/springs";
 
 /**
  * The undo toast (528:26667), over the switched results just above the bottom
@@ -35,13 +35,37 @@ export function UndoToast({ show, to, onUndo, onTimeout }: { show: boolean; to: 
           animate={{ opacity: 1, y: 0, transition: SPR.move }}
           exit={{ opacity: 0, y: 17, transition: SPR.recede }}
         >
-          <svg className="v5-toast-check" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
-            <path fillRule="evenodd" clipRule="evenodd" fill="#0F61FF" d="M12 2.25C17.3848 2.25 21.75 6.61522 21.75 12C21.75 17.3848 17.3848 21.75 12 21.75C6.61522 21.75 2.25 17.3848 2.25 12C2.25 6.61522 6.61522 2.25 12 2.25ZM16.0303 8.96973C15.7374 8.67683 15.2626 8.67684 14.9697 8.96973L10.5 13.4395L9.03027 11.9697C8.73738 11.6768 8.26262 11.6768 7.96973 11.9697C7.67683 12.2626 7.67683 12.7374 7.96973 13.0303L9.96973 15.0303C10.2626 15.3232 10.7374 15.3232 11.0303 15.0303L16.0303 10.0303C16.3232 9.73738 16.3232 9.26262 16.0303 8.96973Z" />
-          </svg>
+          <SuccessCheck />
           <span className="v5-toast-title">{c.title}</span>
           <button className="v5-toast-undo" onClick={onUndo} lang={c.undoLang}>{c.undo}</button>
         </motion.div>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+/**
+ * check-circle-filled, animated very slightly: once the toast has risen, the
+ * circle settles in from 85% and the tick draws itself on — a confirmation
+ * that the switch happened, seen once. Reduced motion: it is simply there.
+ */
+function SuccessCheck() {
+  const reduced = useReducedMotion();
+  return (
+    <svg className="v5-toast-check" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
+      <motion.circle
+        cx={12} cy={12} r={9.75} fill="#0F61FF"
+        style={{ transformOrigin: "12px 12px" }}
+        initial={reduced ? false : { scale: 0.85, opacity: 0.6 }}
+        animate={{ scale: 1, opacity: 1, transition: { ...SPR.pop, delay: at(0.16) } }}
+      />
+      <motion.path
+        d="M8.5 12.5 L10.5 14.5 L15.5 9.5"
+        fill="none" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+        // Round caps draw a dot at zero length, so the tick stays hidden until it starts.
+        initial={reduced ? false : { pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1, transition: { pathLength: { ...SPR.rise, delay: at(0.28) }, opacity: { duration: 0.01, delay: at(0.28) } } }}
+      />
+    </svg>
   );
 }

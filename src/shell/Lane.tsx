@@ -279,8 +279,8 @@ export function Lane({ start, name, tag, note }: Props) {
     <section className="lane">
       <div className="lane-head">
         <div className="lane-title">
-          <h2 className="lane-name">{name}</h2>
-          <span className="lane-tag">{tag}</span>
+          <span className="version-ids">{tag}</span>
+          <h3 className="lane-name">{name}</h3>
         </div>
         <RestartButton label={`Restart the ${name} prototype`} onRestart={() => setState(initialFor(start))} />
       </div>
