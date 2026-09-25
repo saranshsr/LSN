@@ -1,0 +1,253 @@
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useAnimationFrame } from "motion/react";
+
+import { SearchBar } from "./SearchBar";
+import { Icon } from "../icons/Icon";
+import { spring } from "../motion/springs";
+import type { Locale } from "../data/copy";
+import { NUDGE } from "../flow/v5";
+import { useChannels } from "../motion/useChannels";
+import { useCtaMorph } from "../motion/useCtaMorph";
+import { traceFrame, traceStart } from "../motion/trace";
+import type { StateId } from "../motion/nudge-core";
+
+/**
+ * The tooltip layout — the pale card hangs under the search bar off a small
+ * pointer — with the motion from its prototype, fitted to the 351pt header:
+ *
+ *   P → A  arrival: the pointer slips out from under the bar, the card unfolds
+ *          from it (a sliver spreads, then drops open), the icon tile pops, the
+ *          words rise one by one, the pills form, and one slow, soft band of
+ *          light passes over the card's background.
+ *   A → B  collapse: the bar makes room, the tile slides along its own row and
+ *          curves up into the button slot — becoming the button — and only then
+ *          does the card retract up into the bar and the content close up.
+ *   A → C  dismiss: the whole tooltip recedes toward its pointer as one layer.
+ *          The glyph survives (the product's dismiss ≠ never), so the bar then
+ *          makes room and the glyph pops in beside it.
+ *
+ * The tile never leaves the header area, so nothing is drawn over the results.
+ */
+import {
+  W, NOTCH, CARD, R, STAGE_Y, STAGE_X, PAD_B, clamp, lerp,
+  SPRINGS, ENTRANCE, HIDDEN_COPY, STATES, PLANS, SHEEN, tooltipGeom, type K,
+} from "../motion/tooltip-core";
+// Flow v2 (Figma 382:136974): the tooltip now says the same line as the
+// attached nudge — its own "Want noon in العربية?" copy is gone.
+
+type Props = {
+  state: StateId;
+  /** The app's language. The Arabic app draws the same banner mirrored
+   *  (Nudge banner 528:26664, Language=Arabic app). */
+  locale: Locale;
+  query: string;
+  onSwitch: () => void; onDismiss: () => void; onHeight?: (h: number) => void;
+};
+
+export function TooltipHeader({ state, locale, query, onSwitch, onDismiss, onHeight }: Props) {
+  const copy = NUDGE[locale];
+  const WORDS = copy.words;
+  // Mirrored, the geometry is reflected about the stage's centre line — every
+  // x this component writes goes through `mx` — and the row itself is laid
+  // out right-to-left by the device's dir. Nothing is flipped with a
+  // transform, so text and icons read the right way round.
+  const mirror = locale === "ar";
+  const mirrorRef = useRef(mirror); mirrorRef.current = mirror;
+  const ch = useChannels<K>({ ...STATES.P, ic: 0 } as Record<K, number>);
+  const cta = useCtaMorph(locale);
+  const cur = useRef<StateId>("P");
+  const entering = useRef(false);
+  const sheenStart = useRef<number | null>(null);
+
+  const r = {
+    header: useRef<HTMLElement>(null), pop: useRef<HTMLDivElement>(null), notch: useRef<SVGSVGElement>(null),
+    card: useRef<HTMLDivElement>(null), grad: useRef<HTMLDivElement>(null), shine: useRef<HTMLDivElement>(null),
+    inner: useRef<HTMLDivElement>(null), ht: useRef<HTMLDivElement>(null), wm: useRef<HTMLImageElement>(null), label: useRef<HTMLParagraphElement>(null),
+    nn: useRef<HTMLButtonElement>(null), sb: useRef<HTMLButtonElement>(null),
+    search: useRef<HTMLDivElement>(null), tile: useRef<HTMLButtonElement>(null), ring: useRef<HTMLSpanElement>(null),
+  };
+
+  const arrived = useRef(false);
+  useEffect(() => {
+    // Flow v2 (382:79086): no glyph. B (scrolled) and C (✕) both rest as P, the
+    // bar alone and full width — the attached nudge does the same.
+    const to: StateId = state === "B" || state === "C" ? "P" : state;
+    const from = cur.current;
+    if (from === to) return;
+    cur.current = to;
+    if (from === "A") cta.leave();
+    traceStart("tooltip", from, to);
+    ch.cancel();
+    const spr = (k: K) => (entering.current && ENTRANCE[k]) || SPRINGS[k];
+    entering.current = to === "A" && (from === "P" || from === "C");
+    // The shimmer belongs to the first arrival only; scrolling back replays the
+    // entrance without it.
+    sheenStart.current = entering.current && !ch.reduced && !arrived.current ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
+    if (entering.current) { arrived.current = true; cta.arrive(); }
+
+    if (from === "A" && to === "P") {
+      // Out: step back as one layer toward the pointer while the layout gives the
+      // space back, then fold the tooltip away unseen. The bar is already full
+      // width, so nothing else moves.
+      // The recede and the closing space run as ONE motion: same response, no
+      // stagger, so the tooltip is folding away while the results come up under
+      // it rather than vanishing first and leaving a gap to close.
+      ch.to({ dm: 1, lay: 1 }, {}, (k) => (k === "dm" || k === "lay" ? spring(0.95, 1) : spr(k)));
+      // Then tidy up what is already invisible. NOT lay/sx/swd: lay is still
+      // mid-flight here, and snapping it jumped the results 22px in one frame.
+      ch.later(0.45, () => ch.snap({ geo: 1, uf: 0, drop: 0, nt: 0, ic: 0, iv: 0, dm: 0, ...HIDDEN_COPY }));
+      return;
+    }
+    if (entering.current) {
+      // The card is hidden inside the bar: reshape it into a sliver under the pointer.
+      ch.snap({ geo: 0, uf: 0, drop: 0, nt: 0, dm: 0, ic: 0, iv: 0 });
+    } else if (ch.values.iv.get() < 0.05) {
+      ch.snap({ ic: STATES[to].ic ?? 0 });
+    }
+    ch.to(STATES[to], PLANS[from + to] ?? {}, spr);
+  }, [state, ch]);
+
+  const apply = () => {
+    const v = ch.read();
+    traceFrame("tooltip", v);
+    const { g, cardX, cardY, cardW, cardH, cardR, tx, ty, ts, tr, iv, dm, stageH, tileBottom } = tooltipGeom(v, entering.current);
+
+    const s = (el: HTMLElement | SVGElement | null, css: Record<string, string>) => { if (el) Object.assign(el.style, css); };
+    const M = mirrorRef.current;
+    /** An x for a box of width w, reflected when mirrored. */
+    const mx = (x: number, w = 0) => (M ? W - x - w : x);
+    const cx = mx(cardX, cardW);
+
+    s(r.card.current, { transform: `translate(${cx}px, ${cardY}px)`, width: `${cardW}px`, height: `${cardH}px`, borderRadius: `${cardR}px`, opacity: String(clamp(v.nt * 2)) });
+    s(r.grad.current, { opacity: String(clamp(1 - g * 1.3)) });
+    s(r.inner.current, { transform: `translate(${-cx}px, ${-cardY}px)` });
+    s(r.ht.current, { transform: `translate(${-cx}px, ${-cardY}px)${M ? " scaleX(-1)" : ""}`, opacity: String(clamp(1 - g * 1.3)) });
+    s(r.notch.current, {
+      opacity: String(clamp(v.nt * 1.5) * clamp(1 - g * 2.2)),
+      transform: `translate(${mx(NOTCH.tip - NOTCH.w / 2, NOTCH.w)}px, ${cardY - NOTCH.h + lerp(-12, 0, v.nt)}px) scale(${Math.max(0, lerp(0.5, 1, v.nt))}, ${Math.max(0, v.nt)})`,
+    });
+    s(r.search.current, { transform: `translate(${mx(v.sx, v.swd)}px, 0px)`, width: `${v.swd}px` });
+
+    s(r.tile.current, {
+      transform: `translate(${mx(tx - ts / 2, ts)}px, ${ty - ts / 2}px)`, width: `${ts}px`, height: `${ts}px`, borderRadius: `${tr}px`,
+      opacity: String(iv), filter: iv < 0.999 ? `blur(${(1 - iv) * 4}px)` : "none",
+      pointerEvents: cur.current !== "A" && v.ic > 0.6 && iv > 0.6 ? "auto" : "none",
+    });
+    s(r.ring.current, { opacity: String(clamp((v.ic - 0.4) / 0.5)) });
+
+    // One layer receding toward the pointer (dismiss).
+    s(r.pop.current, dm > 0.0005
+      ? { opacity: String(clamp(1 - dm * 1.1)), transform: `translateY(${-22 * dm}px) scale(${lerp(1, 0.94, dm)})`, filter: `blur(${dm * 3}px)` }
+      : { opacity: "", transform: "", filter: "" });
+
+    // Copy: forms on arrival, clears on collapse.
+    const look = (el: HTMLElement | null, o: number, blur: number, tx2: number, ty2: number, sx = 1, sy = sx) => {
+      if (!el) return;
+      el.style.opacity = String(o); el.style.filter = blur > 0.05 ? `blur(${blur}px)` : "none";
+      el.style.transform = `translate(${tx2}px, ${ty2}px) scale(${sx}, ${sy})`;
+    };
+    const words = r.label.current ? [...r.label.current.querySelectorAll<HTMLElement>(".tt-word")] : [];
+    if (entering.current) {
+      look(r.label.current, 1, 0, 0, 0);
+      const e = 1 - v.txt, step = 0.13, span = 1 - step * (words.length - 1);
+      words.forEach((w, i) => { const p = clamp((e - i * step) / span), q = 1 - p; look(w, clamp(p * 1.3), q * 4, 0, q * 9); });
+      for (const [el, c] of [[r.nn.current, v.nn], [r.sb.current, v.sb]] as const) {
+        if (!el) continue;
+        look(el, 1, 0, 0, 0);
+        const e2 = 1 - c, sx = Math.max(0, e2), l = clamp((e2 - 0.35) / 0.65);
+        look(el.querySelector(".pill-surface"), clamp(e2 * 1.8), 0, 0, 0, lerp(0.72, 1, sx), lerp(0.6, 1, sx));
+        look(el.querySelector(".pill-label"), l, (1 - l) * 3, 0, (1 - l) * 5);
+        el.style.pointerEvents = e2 > 0.5 ? "auto" : "none";
+      }
+      const w2 = 1 - v.wm;
+      if (r.wm.current) { r.wm.current.style.opacity = String(clamp(w2)); r.wm.current.style.transform = `scale(${lerp(1.12, 1, w2)})`; }
+    } else {
+      words.forEach((w) => look(w, 1, 0, 0, 0));
+      const exit = (el: HTMLElement | null, c: number, drift: number) => {
+        if (!el) return;
+        look(el, clamp(1 - c * 1.15), clamp(c) * 7, c * drift, -c * 10, 1 - clamp(c) * 0.06);
+        el.style.pointerEvents = c > 0.5 ? "none" : "auto";
+        el.querySelectorAll<HTMLElement>(".pill-surface, .pill-label").forEach((n) => look(n, 1, 0, 0, 0));
+      };
+      exit(r.label.current, v.txt, 18); exit(r.nn.current, v.nn, 12); exit(r.sb.current, v.sb, 8);
+      const sg = M ? -1 : 1;
+      if (r.wm.current) { r.wm.current.style.opacity = String(clamp(1 - v.wm)); r.wm.current.style.transform = `translate(${sg * v.wm * 30}px, ${-v.wm * 14}px) rotate(${-sg * v.wm * 8}deg)`; }
+    }
+
+    // "English → Arabic": settled once every channel is at rest in A.
+    cta.frame(r.nn.current, cur.current === "A" && (Object.values(ch.values) as { isAnimating(): boolean }[]).every((c) => !c.isAnimating()));
+
+    // Slow, soft band of light across the card's background — arrival only, once.
+    const t0 = sheenStart.current;
+    const sp = t0 === null ? -1 : (performance.now() - t0) / (SHEEN.dur * R / 0.52 * 1000);
+    if (sp >= 0 && sp <= 1) {
+      const x = lerp(-240, W + 80, (1 - Math.cos(Math.PI * sp)) / 2);
+      // Mirrored, the band sweeps right to left — the way the Arabic app reads.
+      const left = M ? W - (x - 130) - 240 : x - 130;
+      s(r.shine.current, { opacity: String(Math.pow(Math.sin(Math.PI * sp), 0.8) * 0.6), transform: `translateX(${left - cx}px) skewX(${M ? 16 : -16}deg)` });
+    } else {
+      s(r.shine.current, { opacity: "0" });
+      if (sp > 1) sheenStart.current = null;
+    }
+
+    // The header's box follows the layout alone, same as the inset it reports.
+    // Counting the card bottom in here made the box jump 17px on the first
+    // frame of the return — the card starts as an invisible 3px sliver at y58,
+    // already below the collapsed bar. The card floats; it may overhang.
+    const held = Math.max(stageH, tileBottom);
+    s(r.header.current, { height: `${STAGE_Y + held + PAD_B}px` });
+    onHeight?.(STAGE_Y + Math.max(stageH, tileBottom) + PAD_B);
+  };
+
+  useLayoutEffect(apply);
+  useAnimationFrame(apply);
+
+  const tileIcon = useMemo(() => <Icon name="system-language-bold" size={20} />, []);
+
+  return (
+    <header className="plp-header tt-header" ref={r.header}>
+      <div className={mirror ? "tt-stage tt-stage--mirror" : "tt-stage"} style={{ left: STAGE_X, top: STAGE_Y, width: W }}>
+        {/* Recedes toward its pointer, wherever the pointer is. */}
+        <div className="tt-pop" ref={r.pop} style={{ transformOrigin: `${mirror ? W - NOTCH.tip : NOTCH.tip}px ${CARD.y - 7}px` }}>
+          <svg className="tt-notch" ref={r.notch} width={NOTCH.w} height={NOTCH.h} viewBox="0 0 18 7" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 7 C5 7 6.8 0.6 9 0.6 C11.2 0.6 13 7 18 7 Z" />
+          </svg>
+          <div className="tt-card" ref={r.card}>
+            <div className="nudge-grad" ref={r.grad} />
+            <div className="tt-halftone" ref={r.ht} aria-hidden="true" />
+            <div className="tt-shine" ref={r.shine} />
+            <div className="tt-inner" ref={r.inner}>
+              {/* The white radial glyph from the banner (Watermark glyph 528:26610). */}
+              <img className="tt-watermark" ref={r.wm} src="/img/v5/watermark.svg" alt="" width={160} height={48} />
+              <div className="tt-row">
+                <span className="tt-tile-slot" />
+                <p className="nudge-label tt-label" ref={r.label}>
+                  {WORDS.map((w, i) => (
+                    <span key={i} className={w.strong ? "tt-word tt-word--strong" : "tt-word"}>{w.text}{i < WORDS.length - 1 ? " " : ""}</span>
+                  ))}
+                </p>
+                <div className="nudge-actions">
+                  {/* [تبديل][✕], by position like the attached nudge: nn is the lead. */}
+                  <button className="btn-neutral btn-neutral--bold" ref={r.nn} onClick={() => { cta.tap(); onSwitch(); }} lang={cta.lang} aria-label={cta.gloss}>
+                    <span className="pill-surface" />{cta.label}
+                  </button>
+                  <button className="btn-neutral btn-neutral--quiet btn-neutral--icon" ref={r.sb} onClick={onDismiss} aria-label={copy.close}>
+                    <span className="pill-surface" /><span className="pill-label"><Icon name="system-cross" size={20} /></span>
+                  </button>
+                  {cta.measurers}
+                </div>
+              </div>
+            </div>
+          </div>
+          <button className="tt-tile" ref={r.tile} onClick={onSwitch} aria-label={copy.gloss}>
+            <span className="tt-tile-ring" ref={r.ring} />
+            {tileIcon}
+          </button>
+        </div>
+        <div className="tt-search" ref={r.search}>
+          <SearchBar query={query} back />
+        </div>
+      </div>
+    </header>
+  );
+}
