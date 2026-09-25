@@ -1207,7 +1207,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ── super mall results header (603:42880) ───────────────────────────────
    In stage coordinates (stage at y48, x12): back arrow at 4/8, title at 36/9,
    search at the far end. The device's dir mirrors the row. */
-.titlebar { position: relative; height: 44px; display: flex; align-items: flex-start; gap: 8px; padding: 8px 4px 0; background: #fff; }
+/* Transparent: the header's own white is behind it, and the banner morphs up
+   between the two — under the arrow, title and search, never over them. */
+.titlebar { position: relative; height: 44px; display: flex; align-items: flex-start; gap: 8px; padding: 8px 4px 0; background: transparent; }
 .titlebar-title { flex: 1; min-width: 0; margin-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600; color: #101628; }
 [dir="rtl"] .titlebar-back { transform: scaleX(-1); }
 .tt-search:has(.titlebar) { border: 0; }

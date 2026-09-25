@@ -81,6 +81,10 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
   };
 
   const arrived = useRef(false);
+  /** super mall: the banner last left by morphing into the title bar (scroll),
+   *  so it comes back by morphing out of it rather than unfolding afresh. */
+  const morphed = useRef(false);
+  const barRef = useRef(bar); barRef.current = bar;
   useEffect(() => {
     // Flow v2 (382:79086): no glyph. B (scrolled) and C (✕) both rest as P, the
     // bar alone and full width — the attached nudge does the same.
@@ -97,6 +101,31 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
     // entrance without it.
     sheenStart.current = entering.current && !ch.reduced && !arrived.current ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
     if (entering.current) { arrived.current = true; cta.arrive(); }
+
+    // super mall, scrolled away (B, not ✕): the banner doesn't recede — it
+    // becomes the header. The copy clears, then the card itself slides up and
+    // reshapes from 351 × 48 into the title bar's 351 × 44 while its tint
+    // dissolves; the back arrow, title and search stay drawn above it, and the
+    // results close up under it in the same motion.
+    const morph = barRef.current === "title";
+    if (morph && from === "A" && to === "P" && state === "B") {
+      morphed.current = true;
+      ch.to(
+        { ...HIDDEN_COPY, geo: 1, uf: 1, drop: 1, nt: 1, iv: 0, ic: 0, dm: 0, lay: 1 },
+        { txt: 0, nn: 0.02, sb: 0.04, wm: 0, iv: 0, geo: 0.1, lay: 0.1 },
+        (k) => (k === "geo" ? spring(1.05, 1) : k === "lay" ? spring(1.1, 1) : SPRINGS[k]),
+      );
+      return;
+    }
+    if (morph && entering.current && morphed.current) {
+      // Back up: the reverse — the title bar lets the card go, it drops and
+      // reshapes into the banner as its tint returns, then the copy forms.
+      morphed.current = false;
+      ch.to(STATES.A, { geo: 0, lay: 0, nt: 0, iv: 0.22, wm: 0.2, txt: 0.24, nn: 0.3, sb: 0.36 },
+        (k) => (k === "geo" ? spring(1.05, 1) : k === "lay" ? spring(1.1, 1) : spr(k)));
+      return;
+    }
+    morphed.current = false;
 
     if (from === "A" && to === "P") {
       // Out: step back as one layer toward the pointer while the layout gives the
