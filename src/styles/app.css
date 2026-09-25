@@ -11,11 +11,11 @@
 
 /* ── 1. Fonts + reset ─────────────────────────────────────────────────────── */
 
-@font-face { font-family: Noontree; src: url("/fonts/Noontree-Regular.woff2") format("woff2");   font-weight: 400; font-display: swap; }
-@font-face { font-family: Noontree; src: url("/fonts/Noontree-Medium.woff2") format("woff2");    font-weight: 500; font-display: swap; }
-@font-face { font-family: Noontree; src: url("/fonts/Noontree-SemiBold.woff2") format("woff2");  font-weight: 600; font-display: swap; }
-@font-face { font-family: Noontree; src: url("/fonts/Noontree-Bold.woff2") format("woff2");      font-weight: 700; font-display: swap; }
-@font-face { font-family: Noontree; src: url("/fonts/Noontree-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Regular.woff2") format("woff2");   font-weight: 400; font-display: block; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Medium.woff2") format("woff2");    font-weight: 500; font-display: block; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-SemiBold.woff2") format("woff2");  font-weight: 600; font-display: block; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-Bold.woff2") format("woff2");      font-weight: 700; font-display: block; }
+@font-face { font-family: Noontree; src: url("/fonts/Noontree-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: block; }
 
 /* ── Motion ────────────────────────────────────────────────────────────────
    Curves and durations come from @field-ds/tokens (see tokens.css), not from a
@@ -1303,3 +1303,11 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .ls-ring { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; border: 1px solid rgba(120,128,150,.4); opacity: 0; pointer-events: none; z-index: 9; }
 .dhm { font-feature-settings: "liga" 1; font-variant-ligatures: common-ligatures; }
+/* The switch as the Figma node draws it (520:108779, Component 1): a 112.66
+   track holding two fixed handles — English 52.74 wide (text box 35), العربية
+   53.74 (text box 36, Cairo Medium 12.42/12.42, −0.124). The spec sized them
+   to their labels, which came out 106 wide; Figma wins. */
+.ls-seg { width: 112.66px; }
+.ls-h { flex: none; padding: 0; }
+.ls-h--en { width: 52.74px; }
+.ls-h--ar { width: 53.74px; font-size: 12.419px; line-height: 12.419px; letter-spacing: -.1242px; }
