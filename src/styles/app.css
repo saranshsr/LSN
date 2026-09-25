@@ -1215,7 +1215,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tt-search:has(.titlebar) { border: 0; }
 
 /* ── super mall results content: Figma's render of the chips and the grid ─ */
-.sm-chips { display: block; width: 375px; height: 56px; }
+.sm-chips { display: block; width: 375px; height: 56px; margin-top: -12px; }
 .sm-grid { display: block; width: 351px; height: 916px; margin: 6px 12px 0; }
 .sm-nav { position: absolute; left: 0; bottom: 0; z-index: 2; width: 375px; height: 96px; }
 

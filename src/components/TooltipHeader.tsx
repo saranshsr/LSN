@@ -52,7 +52,11 @@ type Props = {
  *  chips at 154 open and at 94 shut). */
 const GEO = {
   search: { stageY: STAGE_Y, padOpen: PAD_B, padShut: PAD_B },
-  title: { stageY: 48, padOpen: 0, padShut: 2 },
+  // 12 / 14 of white below the bar, like noon's 14, so content scrolls away
+  // under a clean edge instead of butting against the banner. The chips'
+  // own 12pt top padding tucks under it (.sm-chips), so at rest the filters
+  // sit exactly where Figma draws them: 154 open, 94 shut.
+  title: { stageY: 48, padOpen: 12, padShut: 14 },
 };
 
 export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, onDismiss, onHeight }: Props) {
