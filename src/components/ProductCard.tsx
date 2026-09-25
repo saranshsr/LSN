@@ -35,7 +35,9 @@ export function ProductCard({ product, locale }: { product: Product; locale: Loc
 
         <div className="card-price">
           <span className="card-price-now">
-            {c.currency.kind === "mark" ? <Icon name="local-dirham" size={15} /> : <span>{c.currency.value}</span>}
+            {/* Noontree draws the dirham sign from the letters "dhm" (a liga,
+                uniE001) — the same glyph Figma renders. */}
+            {c.currency.kind === "mark" ? <span className="dhm" aria-label="AED">dhm</span> : <span>{c.currency.value}</span>}
             {product.price}
           </span>
           <span className="card-price-was">{product.wasPrice}</span>

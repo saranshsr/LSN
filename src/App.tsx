@@ -30,7 +30,12 @@ const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [strin
 
 const q = () => new URLSearchParams(location.search);
 const flowFromUrl = (): Flow => { const f = q().get("flow"); return f === "ar" || f === "sm" ? f : "en"; };
-const sheetFromUrl = (): SheetType => (q().get("sheet") === "2" ? "sheet2" : "sheet1");
+/** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
+const sheetFromUrl = (): SheetType => (q().get("sheet") === "compact" ? "sheet1" : "sheet2");
+const SHEETS: { id: SheetType; label: string }[] = [
+  { id: "sheet2", label: "Illustrated sheet" },
+  { id: "sheet1", label: "Compact sheet" },
+];
 
 function solo() {
   const p = q();
@@ -46,8 +51,8 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "1") setSheet("sheet1");
-      if (e.key === "2") setSheet("sheet2");
+      if (e.key === "1") setSheet("sheet2");
+      if (e.key === "2") setSheet("sheet1");
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
@@ -55,7 +60,7 @@ export default function App() {
   useEffect(() => {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
-    if (sheet === "sheet1") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "2");
+    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "compact");
     history.replaceState(null, "", u);
   }, [flow, sheet]);
 
@@ -83,9 +88,9 @@ export default function App() {
           ))}
         </div>
         <div className="seg" role="radiogroup" aria-label="Bottom sheet">
-          {(["sheet1", "sheet2"] as const).map((s, i) => (
-            <button key={s} className="seg-opt" role="radio" aria-checked={sheet === s} data-on={sheet === s ? "" : undefined} onClick={() => setSheet(s)} title={`Sheet ${i + 1} · key ${i + 1}`}>
-              Sheet {i + 1}
+          {SHEETS.map((x, i) => (
+            <button key={x.id} className="seg-opt" role="radio" aria-checked={sheet === x.id} data-on={sheet === x.id ? "" : undefined} onClick={() => setSheet(x.id)} title={`Key ${i + 1}`}>
+              {x.label}
             </button>
           ))}
         </div>

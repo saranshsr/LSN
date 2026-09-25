@@ -5,20 +5,15 @@ import type { Locale } from "../data/copy";
 
 
 /**
- * The beat that covers the relaunch: the rebrand wordmark morph ("morph
- * iteration - 7 (rebrand)", 24 Sep). Into Arabic, Hala grows in and curls into
- * هلا, two sparkles twinkle and go. Back to English, the same clip runs in
- * reverse — هلا uncurls into Hala — so both directions speak one motion
- * language (the shipped app's two recordings are retired here).
- *
- * The clip never fades its wordmark; the screen layer's relaunch fade carries
- * it out into the skeleton.
+ * The beat that covers the relaunch: the splash (25 Sep, "Hala to Arabic" and
+ * "Arabic to Hala", 1080 × 2338). Each starts on white, grows its wordmark in,
+ * morphs Hala ⇄ هلا with two sparkles, holds, and fades back to white by
+ * 2.95 s — so it opens out of the fading results and hands over to the
+ * skeleton on white, with nothing to cross-fade.
  */
 const CLIPS: Record<Locale, { src: string; ms: number }> = {
-  // Motion done by 2.02 s; leave at 2.5 s, a beat to read هلا.
-  ar: { src: "/media/hala-morph-rebrand.mp4", ms: 2500 },
-  // 0.28–2.10 s reversed (1.82 s), then Hala held; leave at 2.3 s.
-  en: { src: "/media/hala-morph-rebrand-back.mp4", ms: 2300 },
+  ar: { src: "/media/splash-to-ar.mp4", ms: 2950 },
+  en: { src: "/media/splash-to-en.mp4", ms: 2950 },
 };
 
 export function TransitionScreen({ to, onDone }: { to: Locale; onDone: () => void }) {

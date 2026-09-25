@@ -7,6 +7,7 @@ import { ResultsScreen } from "../screens/ResultsScreen";
 import { TransitionScreen } from "../screens/TransitionScreen";
 import { SkeletonScreen } from "../screens/SkeletonScreen";
 import { ConfirmSheet } from "../components/Sheet";
+import { LanguageSheet } from "../components/LanguageSheet";
 import { UndoToast } from "../components/UndoToast";
 import { chrome, dirFor, type Locale } from "../data/copy";
 import { useConfirm, otherLocale, SM_SUGGESTIONS, type Store } from "../flow/v5";
@@ -197,14 +198,27 @@ export function Device({ state, setState, pinned }: DeviceProps) {
         show={state.screen === "results" && !!state.toast}
         to={state.locale}
         top={state.store === "sm" ? 648 : 659}
+        navTop={state.store === "sm" ? 716 : 727}
         onTimeout={() => { if (!pinned) patch({ toast: false }); }}
         onUndo={() => relaunch(otherLocale(state.locale), { undoing: true })}
       />
 
-      {confirm !== "instant" ? (
+      {/* The primary sheet (520:108779) runs its own engine and stays mounted;
+          the compact one (530:27774) docks through ConfirmSheet. */}
+      {confirm === "sheet2" ? (
+        <LanguageSheet
+          open={state.sheetOpen}
+          locale={state.locale}
+          onCancel={() => patch({ sheetOpen: false })}
+          onConfirm={() => {
+            patch({ sheetOpen: false });
+            setTimeout(() => relaunch(otherLocale(state.locale)), HANDOFF_MS);
+          }}
+        />
+      ) : confirm === "sheet1" ? (
         <ConfirmSheet
           open={state.sheetOpen}
-          variant={confirm}
+          variant="sheet1"
           locale={state.locale}
           onCancel={() => patch({ sheetOpen: false })}
           onConfirm={() => {

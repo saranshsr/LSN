@@ -7,7 +7,7 @@ import { SHEET } from "../flow/v5";
 import { SPR, at } from "../motion/springs";
 
 /** Grabber + sheet + home indicator — the travel a full dismissal covers. */
-const DOCK_H = { sheet1: 28 + 212 + 33, sheet2: 28 + 500 + 33 };
+const DOCK_H = { sheet1: 28 + 212 + 33 };
 /** Apple's projection constant from Designing Fluid Interfaces. */
 const DECEL = 0.998;
 const project = (v: number) => (v / 1000) * DECEL / (1 - DECEL);
@@ -21,7 +21,7 @@ const exit = SPR.recede;
 
 type Props = {
   open: boolean;
-  variant: "sheet1" | "sheet2";
+  variant: "sheet1";
   /** The app's language — the sheet is written in it and offers the other. */
   locale: Locale;
   onCancel: () => void;
@@ -29,8 +29,8 @@ type Props = {
 };
 
 /**
- * M-BottomSheet, iteration 5: "Sheet · option 1" (530:27774) or "Sheet ·
- * option 2" (530:28151), each with its Arabic-app twin. The device's dir
+ * M-BottomSheet, iteration 5: the compact "Sheet · option 1" (530:27774) and
+ * its Arabic-app twin. The illustrated option 2 is components/LanguageSheet. The device's dir
  * mirrors them; the switch button is in the offered language.
  *
  * Enter and exit share the same `y` the drag writes to, so an interrupted
@@ -70,9 +70,7 @@ export function ConfirmSheet({ open, variant, locale, onCancel, onConfirm }: Pro
             transition={enter}
           >
             <div className="sheet-grabber" />
-            {variant === "sheet1"
-              ? <SheetOne locale={locale} onCancel={onCancel} onConfirm={onConfirm} />
-              : <SheetTwo locale={locale} onConfirm={onConfirm} />}
+            <SheetOne locale={locale} onCancel={onCancel} onConfirm={onConfirm} />
             <div className="sheet-homebar v5-homebar" />
           </motion.div>
         </>
@@ -133,23 +131,6 @@ function SheetOne({ locale, onCancel, onConfirm }: { locale: Locale; onCancel: (
       <div className="s1-actions">
         <button className="v5-btn v5-btn--quiet" onClick={onCancel}>{c.cancel}</button>
         <button className="v5-btn v5-btn--go" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
-      </div>
-    </div>
-  );
-}
-
-/** Option 2: the Account page with its Language row lifted out of it, then one
- *  line of instruction and one dark button (530:28151). The illustration is
- *  Figma's render of the popup with its text taken out. */
-function SheetTwo({ locale, onConfirm }: { locale: Locale; onConfirm: () => void }) {
-  const c = SHEET[locale].two;
-  return (
-    <div className="v5-sheet s2" role="dialog" aria-label={c.title}>
-      <img className="s2-art" src="/img/v5/sheet2-art.png" alt="" width={351} height={500} />
-      <div className="s2-copy">
-        <h2 className="s2-title">{c.title}</h2>
-        <p className="s2-body">{c.body}</p>
-        <button className="v5-btn v5-btn--dark" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
       </div>
     </div>
   );

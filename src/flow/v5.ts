@@ -21,12 +21,13 @@ import type { Locale } from "../data/copy";
  */
 export type Confirm = "sheet1" | "sheet2" | "instant";
 
-export const ConfirmContext = createContext<Confirm>("sheet1");
+export const ConfirmContext = createContext<Confirm>("sheet2");
 export const useConfirm = () => useContext(ConfirmContext);
 
 export const confirmFromUrl = (): Confirm => {
   const c = new URLSearchParams(location.search).get("confirm");
-  return c === "sheet2" || c === "instant" ? c : "sheet1";
+  // The illustrated sheet (520:108779) is the primary one since 25 Sep.
+  return c === "sheet1" || c === "instant" ? c : "sheet2";
 };
 
 /** noon, or super mall (SM1 / SM2, 603:41789 · 603:45751). */

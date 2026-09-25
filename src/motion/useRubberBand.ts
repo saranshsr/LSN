@@ -23,7 +23,10 @@ import { animate } from "motion/react";
  * from under the header, which is where it goes on a real device. Settling is
  * a critically damped spring, because no gesture carried momentum into it.
  */
-const PULL_DIMENSION = 110;
+/* 25 Sep: at 110 a pull could open a ~110pt gap between the banner and the
+   filters. 36 keeps the stretch — the page still gives — but it can never
+   drift more than a chip's height from the header. */
+const PULL_DIMENSION = 36;
 
 export function useRubberBand(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -46,8 +49,9 @@ export function useRubberBand(ref: React.RefObject<HTMLElement | null>) {
       releasedAt = performance.now();
       if (!overshoot) return;
       const from = overshoot;
+      // A small, elastic return: a whisper of overshoot, never a second bounce.
       settling = animate(from, 0, {
-        type: "spring", bounce: 0, duration: 0.45,
+        type: "spring", bounce: 0.12, duration: 0.42,
         onUpdate: (v) => { overshoot = v; paint(); },
       });
     };
@@ -68,7 +72,7 @@ export function useRubberBand(ref: React.RefObject<HTMLElement | null>) {
       if (performance.now() - releasedAt < 450 && Math.abs(e.deltaY) < 40) return;
       settling?.stop();
       settling = null;
-      overshoot -= e.deltaY * 0.25;
+      overshoot -= e.deltaY * 0.2;
       paint();
 
       clearTimeout(idle);

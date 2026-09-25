@@ -21,6 +21,6 @@ npm install
 npm run dev        # http://localhost:5193
 ```
 
-- `?flow=ar` / `?flow=sm`, `?sheet=2` — open on a view
+- `?flow=ar` / `?flow=sm`, `?sheet=compact` — open on a view (the illustrated sheet, 520:108779, is the default)
 - `?device=en|ar|sm&confirm=sheet1|sheet2|instant` — one bare phone to present from (R restarts)
 - `?solo=sm&beat=sheet` — park a phone on a beat

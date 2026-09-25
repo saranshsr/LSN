@@ -677,7 +677,7 @@ ul { margin: 0; padding: 0; list-style: none; }
    the top edge — so ours sits clear on it, and the screen holds the clip's
    own top colour (#EEF7FC) until the first frame decodes. */
 .screen--transition.screen--rebrand,
-.screen--rebrand .transition-video { background: #eef7fc; }
+.screen--rebrand .transition-video { background: #fff; }
 .screen--rebrand .statusbar { background: transparent; }
 
 /* ── Skeleton ─────────────────────────────────────────────────────────────
@@ -1149,8 +1149,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ── Iteration 5 · undo toast (528:26667) ─────────────────────────────────
    351 × 52 at y659, white, radius 14, a #F2F3F7 hairline and a soft drop. The
    check leads, the message follows, Undo sits at the far end. */
+.v5-toast-clip { position: absolute; left: 0; top: 0; width: 375px; overflow: hidden; pointer-events: none; z-index: 3; }
 .v5-toast {
-  position: absolute; left: 12px; top: 659px; z-index: 3; width: 351px; height: 52px;
+  position: absolute; left: 12px; top: 659px; pointer-events: auto; width: 351px; height: 52px;
   display: flex; align-items: center; gap: 8px; padding-inline: 12px 10px;
   background: #fff; border: 1px solid #f2f3f7; border-radius: 14px;
   box-shadow: 0 12px 28px rgba(11, 12, 14, 0.1);
@@ -1227,3 +1228,78 @@ ul { margin: 0; padding: 0; list-style: none; }
 .v5-lane .lane-head { margin-bottom: 12px; }
 .v5-lane .lane-name { font-size: 14px; font-weight: 500; color: #b9c1d1; }
 .lane-restart.lane-restart--icon { min-height: 36px; width: 36px; padding: 0; justify-content: center; border-radius: 10px; }
+
+/* ── The sheet, 520:108779 (components/LanguageSheet) ─────────────────────
+   Ported from the handoff's reference prototype; every value is Figma's.
+   Scoped with `ls-` so nothing on the page reaches in. */
+.ls-root { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.ls-root[data-open] { pointer-events: auto; }
+.ls-scrim { position: absolute; inset: 0; background: #000; opacity: 0; }
+.ls-dock { position: absolute; left: 0; top: 251px; width: 375px; height: 561px; will-change: transform; transform: translateY(100%); }
+.ls-grab { position: absolute; left: 0; top: 0; width: 375px; height: 28px; }
+.ls-grab::before { content: ""; position: absolute; left: 169.5px; top: 12px; width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.6); }
+.ls-popup {
+  position: absolute; left: 12px; top: 28px; width: 351px; height: 500px; border-radius: 20px; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, #ebf4ff 0%, #bddbff 100%);
+}
+.ls-popup::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px #f9fafb; pointer-events: none; z-index: 20; }
+.ls-home { position: absolute; left: 0; top: 528px; width: 375px; height: 33px; }
+.ls-home::before { content: ""; position: absolute; left: 120.5px; top: 20px; width: 134px; height: 5px; border-radius: 3px; background: #fff; }
+.ls-ell { position: absolute; left: 6px; width: 339px; height: 339px; border-radius: 50%; filter: blur(5px); }
+.ls-ell--a { top: 22px; opacity: .8; background: radial-gradient(closest-side, #85bdff, rgba(51,146,255,0)); }
+.ls-ell--b { top: -3.5px; background: radial-gradient(closest-side, rgb(168,173,233), rgba(157,163,235,0)); }
+.ls-layer { position: absolute; display: block; pointer-events: none; }
+.ls-pattern {
+  left: 0; top: 0; width: 351px; height: 379px; --r: 0px;
+  -webkit-mask-image: radial-gradient(circle at 176px 166px, #000 var(--r), transparent calc(var(--r) + 140px));
+          mask-image: radial-gradient(circle at 176px 166px, #000 var(--r), transparent calc(var(--r) + 140px));
+}
+.ls-phone-wrap { position: absolute; inset: 0; transform-origin: 175px 300px; will-change: transform, opacity; }
+.ls-screen { position: absolute; left: 53.12px; top: 42px; width: 244.77px; height: 530px; overflow: hidden; background: #f2f3f7; border-radius: 36px 36px 0 0; }
+.ls-scroll { position: absolute; left: 7.83px; top: 0; width: 236.93px; height: 458px; will-change: transform; }
+.ls-scroll img { display: block; width: 236.93px; height: 458px; }
+.ls-rowhl { position: absolute; left: 7.83px; top: 109px; width: 229.1px; height: 35.5px; border-radius: 10px; background: #ebf4ff; opacity: 0; mix-blend-mode: multiply; }
+.ls-status { left: 0; top: 0; width: 244.77px; height: 30.68px; background: #fff; }
+.ls-pill { left: 126.51px; top: 429.16px; width: 118.25px; height: 28.84px; }
+.ls-phone { left: 4.93px; top: 0; width: 339.87px; height: 500px; }
+.ls-frost {
+  position: absolute; left: 54px; top: 80px; width: 242px; height: 315px; background: rgba(255,255,255,.5);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); opacity: 0; pointer-events: none;
+}
+.ls-fade { left: 0; top: 171px; width: 351px; height: 329px; }
+.ls-copy { position: absolute; left: 0; top: 324px; width: 351px; padding: 0 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; z-index: 5; }
+.ls-t { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.ls-copy h2 { margin: 0; font: 800 26px/42px Figtree, "Noto Sans Arabic", sans-serif; letter-spacing: -.2px; color: #1d2539; white-space: nowrap; }
+.ls-copy p { margin: 0; width: 283px; font: 400 15px/21px Noontree, "Noto Sans Arabic", sans-serif; letter-spacing: -.3px; color: #666d85; }
+[dir="rtl"] .ls-copy p { letter-spacing: 0; }
+.ls-cta {
+  width: 311px; height: 48px; border: 0; border-radius: 10px; background: #101628; color: #fff; cursor: pointer;
+  font: 600 14px/20px Noontree, "Noto Sans Arabic", sans-serif; letter-spacing: 0;
+  transition: transform .32s linear(0,.1047,.3149,.5464,.7499,.9032,1.0031,1.0568,1.0763,1.0738,1.0598,1.0419,1.0251,1.0116,1.0023,.9969,.9944,.9941,.9949,.9962,.9976,.9987,.9996,1.0001,1.0004,1);
+}
+.ls-cta:active { transform: scale(.97); }
+.ls-card {
+  position: absolute; left: 20.27px; top: 139px; width: 311.37px; height: 55px; padding: 10.645px; border-radius: 16px; background: #fff;
+  box-shadow: 0 0 12px rgba(0,0,0,.06); transform-origin: 0 0; opacity: 0; z-index: 6; will-change: transform, opacity;
+}
+.ls-li { width: 290.08px; height: 33.71px; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+.ls-l { display: flex; align-items: center; gap: 7.097px; }
+.ls-ic { display: flex; padding: 3.548px; border-radius: 8px; }
+.ls-txt { font: 500 12.42px/15.968px Noontree, sans-serif; letter-spacing: -.1px; color: #1d2539; white-space: nowrap; }
+.ls-seg {
+  position: relative; width: auto; flex: none; height: 33.71px; padding: 3.548px; border-radius: 9999px; background: #f9f9fb;
+  display: flex; align-items: center; box-shadow: inset 0 .887px 3.548px rgba(36,36,36,.04);
+}
+.ls-thumb {
+  position: absolute; top: 3.548px; left: 0; height: 26.614px; border-radius: 14.194px; background: #fff; border: .887px solid #fcfcfd; transform-origin: 50% 50%;
+  box-shadow: -.887px -.887px 2.661px rgba(34,34,34,.02), -.887px .887px 2.661px rgba(34,34,34,.04); will-change: transform, width;
+}
+.ls-h { position: relative; z-index: 1; height: 100%; display: flex; align-items: center; justify-content: center; padding: 7.097px 8.871px; white-space: nowrap; }
+.ls-h--en { font: 600 10.65px/12.419px Noontree, sans-serif; letter-spacing: -.12px; color: #1d2539; }
+.ls-h--ar { font: 500 11.02px/11.017px Cairo, sans-serif; letter-spacing: -.1242px; color: #666d85; }
+.ls-touch {
+  position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; background: rgba(120,128,150,.16);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); opacity: 0; pointer-events: none; z-index: 9;
+}
+.ls-ring { position: absolute; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; border: 1px solid rgba(120,128,150,.4); opacity: 0; pointer-events: none; z-index: 9; }
+.dhm { font-feature-settings: "liga" 1; font-variant-ligatures: common-ligatures; }
