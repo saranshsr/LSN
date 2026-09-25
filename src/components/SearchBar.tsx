@@ -14,12 +14,14 @@ type Props = {
   /** 44 in the PLP header, 48 on Home and in the search overlay. */
   height?: 44 | 48;
   onClick?: () => void;
+  /** The home bars of iteration 5 draw their own chrome (see app.css). */
+  variant?: "home" | "sm";
 };
 
 const hasArabic = (s: string) => /[؀-ۿ]/.test(s);
 
 /** M-SearchBar. The camera sits behind a hairline divider. */
-export function SearchBar({ query, placeholder, back, caret, typing, bare, height = 44, onClick }: Props) {
+export function SearchBar({ query, placeholder, back, caret, typing, bare, height = 44, onClick, variant }: Props) {
   // In an LTR field an Arabic run is laid out first, so the caret — the logical
   // end of the text — lands on its LEFT. The frames show exactly that.
   // An empty query has no Arabic to detect yet, but the caret still belongs
@@ -27,7 +29,7 @@ export function SearchBar({ query, placeholder, back, caret, typing, bare, heigh
   const caretFirst = caret && query !== undefined && (hasArabic(query) || query === "");
   const bar = <span className="searchbar-caret" data-typing={!!typing} />;
   return (
-    <div className={bare ? "searchbar searchbar--bare" : "searchbar"} style={bare ? undefined : { height }} onClick={onClick} role={onClick ? "button" : undefined}>
+    <div className={["searchbar", bare ? "searchbar--bare" : "", variant ? `searchbar--${variant}` : ""].join(" ").trim()} style={bare ? undefined : { height }} onClick={onClick} role={onClick ? "button" : undefined}>
       {back
         ? <Icon name="system-chevron-left" size={20} className="searchbar-icon searchbar-icon--back" />
         : <Icon name="system-search" size={20} className="searchbar-icon" />}

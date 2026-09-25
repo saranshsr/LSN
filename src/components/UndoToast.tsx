@@ -15,7 +15,7 @@ import { SPR, at } from "../motion/springs";
  * `to` is the language the app switched to: the message is in it, the Undo in
  * the language the person came from, so the way back reads in their language.
  */
-export function UndoToast({ show, to, onUndo, onTimeout }: { show: boolean; to: Locale; onUndo: () => void; onTimeout: () => void }) {
+export function UndoToast({ show, to, top = 659, onUndo, onTimeout }: { show: boolean; to: Locale; top?: number; onUndo: () => void; onTimeout: () => void }) {
   const c = TOAST[to];
   useEffect(() => {
     if (!show) return;
@@ -31,6 +31,7 @@ export function UndoToast({ show, to, onUndo, onTimeout }: { show: boolean; to: 
           key="toast"
           className="v5-toast"
           role="status"
+          style={{ top }}
           initial={{ opacity: 0, y: 17 }}
           animate={{ opacity: 1, y: 0, transition: SPR.move }}
           exit={{ opacity: 0, y: 17, transition: SPR.recede }}

@@ -29,9 +29,23 @@ export const confirmFromUrl = (): Confirm => {
   return c === "sheet2" || c === "instant" ? c : "sheet1";
 };
 
+/** noon, or super mall (SM1 / SM2, 603:41789 · 603:45751). */
+export type Store = "noon" | "sm";
+
 /** The query each app searched with. The English app searched in Arabic; the
- *  Arabic app in English (B1 · 01, 539:26596). */
-export const QUERY_FOR: Record<Locale, string> = { en: "عبايات", ar: "abaya" };
+ *  Arabic app in English (B1 · 02, 539:26596). super mall searches makeup. */
+export const QUERY_FOR: Record<Store, Record<Locale, string>> = {
+  noon: { en: "عبايات", ar: "abaya" }, // "abayas"
+  sm: { en: "مكياج", ar: "مكياج" }, // "makeup"
+};
+
+/** SM1 · 02 Search, typing (603:26596). */
+export const SM_SUGGESTIONS = [
+  { text: "مكياج عيون", gloss: "eye makeup" },
+  { text: "مكياج ميبيلين", gloss: "Maybelline makeup" },
+  { text: "أحمر شفاه", gloss: "lipstick" },
+  { text: "كريم أساس", gloss: "foundation" },
+];
 
 const other = (l: Locale): Locale => (l === "en" ? "ar" : "en");
 export { other as otherLocale };

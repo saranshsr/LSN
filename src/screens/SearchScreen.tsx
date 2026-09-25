@@ -34,16 +34,19 @@ const START_MS = 520;
  * hold until the query lands, then stagger in, which is also the honest
  * ordering — they are a response to the query.
  */
-export function SearchScreen({ onSubmit }: { onSubmit: () => void }) {
+type Suggestion = { text: string; gloss: string };
+
+export function SearchScreen({ onSubmit, query = QUERY, suggestions = SUGGESTIONS }: { onSubmit: () => void; query?: string; suggestions?: Suggestion[] }) {
+  const QUERY_ = query;
   const [typed, setTyped] = useState(0);
-  const done = typed >= QUERY.length;
+  const done = typed >= QUERY_.length;
 
   useEffect(() => {
     let i = 0;
     const tick = () => { i += 1; setTyped(i); };
     const start = setTimeout(function step() {
       tick();
-      if (i < QUERY.length) timer = setTimeout(step, KEY_MS);
+      if (i < QUERY_.length) timer = setTimeout(step, KEY_MS);
     }, START_MS);
     let timer: ReturnType<typeof setTimeout>;
     return () => { clearTimeout(start); clearTimeout(timer); };
@@ -53,14 +56,14 @@ export function SearchScreen({ onSubmit }: { onSubmit: () => void }) {
     <div className="screen search-screen">
       <StatusBar />
       <div className="search-head">
-        <SearchBar query={QUERY.slice(0, typed)} caret height={48} typing={!done} />
+        <SearchBar query={QUERY_.slice(0, typed)} caret height={48} typing={!done} />
       </div>
       <div className="scroll">
         {done ? (
           // Suggestions answer the query, so they rise in only once it lands —
           // one by one, like the nudge's words. On exit they clear together.
           <motion.ul initial="hidden" animate="shown" exit="gone" variants={{ shown: { transition: stagger(0.05) }, ...clearList }}>
-            {SUGGESTIONS.map((s) => (
+            {suggestions.map((s) => (
               <motion.li className="suggestion-item" key={s.text} variants={rise}>
                 <button className="suggestion" onClick={onSubmit} title={s.gloss}>
                   <Icon name="system-search" size={24} />

@@ -1,5 +1,5 @@
 import type { Locale } from "../data/copy";
-import { QUERY_FOR, type Confirm } from "./v5";
+import { QUERY_FOR, type Confirm, type Store } from "./v5";
 
 /**
  * `transition` is the rebrand wordmark morph (Hala ⇄ هلا). `skeleton` is what
@@ -24,6 +24,8 @@ export type FlowState = {
    *  language). Off after a switch, and after an undo. */
   offer: boolean;
   query: string;
+  /** noon or super mall — which home, search, results and nav. */
+  store: Store;
   /** Where a relaunch in flight is heading. */
   switchTo?: Locale;
   /** Instant switch: the undo toast is due on the switched results. */
@@ -35,16 +37,15 @@ export type FlowState = {
   undone?: boolean;
 };
 
-/** Each lane's first beat. The English app starts on Home and searches in
- *  Arabic (A1/A2 · 01); the Arabic app starts on its results for an English
- *  query, the banner already offering (B1/B2 · 01). */
-export const initialFor = (start: Locale): FlowState => ({
-  screen: start === "en" ? "home" : "results",
+/** Every lane starts on its Home (A · 01, B · 01, SM · 01). */
+export const initialFor = (start: Locale, store: Store = "noon"): FlowState => ({
+  screen: "home",
   locale: start,
   nudge: "offered",
   sheetOpen: false,
   offer: true,
-  query: QUERY_FOR[start],
+  query: QUERY_FOR[store][start],
+  store,
 });
 
 export type StepId = "home" | "search" | "nudge" | "sheet" | "splash" | "loading" | "switched" | "undo";
@@ -53,7 +54,8 @@ export type StepId = "home" | "search" | "nudge" | "sheet" | "splash" | "loading
 export function stepsFor(start: Locale, confirm: Confirm): { id: StepId; label: string }[] {
   const to = start === "en" ? "Arabic" : "English";
   return [
-    ...(start === "en" ? [{ id: "home" as const, label: "Home" }, { id: "search" as const, label: "Arabic query" }] : []),
+    { id: "home" as const, label: "Home" },
+    ...(start === "en" ? [{ id: "search" as const, label: "Search" }] : []),
     { id: "nudge", label: "Nudge" },
     ...(confirm === "instant" ? [] : [{ id: "sheet" as const, label: confirm === "sheet1" ? "Sheet · option 1" : "Sheet · option 2" }]),
     { id: "splash", label: start === "en" ? "Hala → هلا" : "هلا → Hala" },
@@ -74,8 +76,8 @@ export function stepOf(s: FlowState): StepId {
 }
 
 /** Parked beats for `?solo=` captures. */
-export function stateFor(start: Locale, beat: string): FlowState {
-  const base = initialFor(start);
+export function stateFor(start: Locale, beat: string, store: Store = "noon"): FlowState {
+  const base = initialFor(start, store);
   const to: Locale = start === "en" ? "ar" : "en";
   switch (beat) {
     case "search": return { ...base, screen: "search" };

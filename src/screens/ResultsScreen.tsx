@@ -12,6 +12,7 @@ import type { Locale } from "../data/copy";
 import { products } from "../data/products";
 import { SkeletonCard } from "./SkeletonScreen";
 import type { NudgeState } from "../flow/flow";
+import type { Store } from "../flow/v5";
 
 type Props = {
   locale: Locale;
@@ -19,6 +20,8 @@ type Props = {
    *  language). Off once the switch has happened, either way. */
   offer: boolean;
   query: string;
+  /** super mall draws its own header, chips, grid and nav (SM1 · 03). */
+  store?: Store;
   nudge: NudgeState;
   /** `search` = arrived from the overlay, so the content settles in;
    *  `skeleton` = the app just came back up after the switch. */
@@ -35,7 +38,8 @@ const AS_STATE: Record<NudgeState, StateId> = { offered: "A", collapsed: "B", di
  * screen, because the difference between them is scroll position. Also serves
  * the switched RTL state (frame 8) at locale `ar`.
  */
-export function ResultsScreen({ locale, offer, query, nudge: state, entrance, onSwitch, onDismiss, onCollapse }: Props) {
+export function ResultsScreen({ locale, offer, query, store = "noon", nudge: state, entrance, onSwitch, onDismiss, onCollapse }: Props) {
+  const sm = store === "sm";
   const scroller = useRef<HTMLDivElement>(null);
   useRubberBand(scroller);
 
@@ -111,7 +115,9 @@ export function ResultsScreen({ locale, offer, query, nudge: state, entrance, on
     <div className="screen" data-entrance={entrance} ref={root}>
       <StatusBar />
 
-      {offer ? (
+      {sm ? (
+        <TooltipHeader state={offer ? nudgeState : "C"} locale={locale} query={query} bar="title" onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
+      ) : offer ? (
         <TooltipHeader state={nudgeState} locale={locale} query={query} onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       ) : locale === "ar" ? (
         <ArHeader query={query} />
@@ -123,19 +129,23 @@ export function ResultsScreen({ locale, offer, query, nudge: state, entrance, on
         className="scroll"
         ref={scroller}
         onScroll={onScroll}
-        style={{ paddingTop: locale === "ar" && !offer ? 106.57 : inset }}
+        style={{ paddingTop: locale === "ar" && !offer && !sm ? 106.57 : inset, paddingBottom: sm ? 110 : undefined }}
       >
         {/* Arriving from search, the content arrives into its placeholders as
             two groups — chips, then the grid. Arriving from the relaunch
             skeleton it must NOT move: placeholder and content share pixels. */}
         <div className="plp-content">
           <motion.div initial={arrive ? "hidden" : false} animate={loading ? "hidden" : "shown"} variants={groupIn(0)}>
-            <ChipRow locale={locale} />
+            {sm ? <img className="sm-chips" src={`/img/v5/sm-chips-${locale}.png`} alt="" /> : <ChipRow locale={locale} />}
           </motion.div>
+          {sm ? (
+            <motion.img className="sm-grid" src={`/img/v5/sm-grid-${locale}.jpg`} alt="" initial={arrive ? "hidden" : false} animate={loading ? "hidden" : "shown"} variants={groupIn(0.07)} />
+          ) : (
           <motion.div className="grid" initial={arrive ? "hidden" : false} animate={loading ? "hidden" : "shown"} variants={groupIn(0.07)}>
-            {products.map((pr) => <ProductCard key={pr.slug} product={pr} locale={locale} />)}
-            {products.map((pr) => <ProductCard key={`${pr.slug}-2`} product={pr} locale={locale} />)}
-          </motion.div>
+              {products.map((pr) => <ProductCard key={pr.slug} product={pr} locale={locale} />)}
+              {products.map((pr) => <ProductCard key={`${pr.slug}-2`} product={pr} locale={locale} />)}
+            </motion.div>
+          )}
 
           <AnimatePresence>
             {loading ? (
@@ -159,7 +169,7 @@ export function ResultsScreen({ locale, offer, query, nudge: state, entrance, on
         </div>
       </div>
 
-      <BottomNav locale={locale} />
+      {sm ? <img className="sm-nav" src={`/img/v5/sm-nav-${locale}.png`} alt="" /> : <BottomNav locale={locale} />}
     </div>
   );
 }

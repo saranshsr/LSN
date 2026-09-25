@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import { HomeScreen } from "../screens/HomeScreen";
+import { ImageHome } from "../screens/ImageHome";
 import { SearchScreen } from "../screens/SearchScreen";
 import { ResultsScreen } from "../screens/ResultsScreen";
 import { TransitionScreen } from "../screens/TransitionScreen";
@@ -9,10 +9,10 @@ import { SkeletonScreen } from "../screens/SkeletonScreen";
 import { ConfirmSheet } from "../components/Sheet";
 import { UndoToast } from "../components/UndoToast";
 import { chrome, dirFor, type Locale } from "../data/copy";
-import { useConfirm, otherLocale } from "../flow/v5";
+import { useConfirm, otherLocale, SM_SUGGESTIONS, type Store } from "../flow/v5";
 import { BarFlight, chromeOf, readLook, type Flight } from "./BarFlight";
 import { SPR, at } from "../motion/springs";
-import { initialFor, stateFor, stepOf, stepsFor, type FlowState, type Screen } from "../flow/flow";
+import { initialFor, stateFor, type FlowState, type Screen } from "../flow/flow";
 
 /** How long the skeleton holds — one shimmer sweep plus its rest, then a beat. */
 const SKELETON_MS = 1600;
@@ -87,8 +87,10 @@ export function Device({ state, setState, pinned }: DeviceProps) {
     lastScreen.current = state.screen;
     if (was === state.screen) return;
     const dev = ref.current;
+    // B · 01 → 02: the Arabic app goes from Home straight to its results.
     const leg = was === "home" && state.screen === "search" ? "open"
-      : was === "search" && state.screen === "results" ? "submit" : null;
+      : was === "search" && state.screen === "results" ? "submit"
+      : was === "home" && state.screen === "results" ? "direct" : null;
     if (!leg || reduced || !dev) { setFlight(null); return; }
     const bar = (scr: Screen) => dev.querySelector<HTMLElement>(`.screen-layer[data-screen="${scr}"] .searchbar`);
     dev.querySelector(`.screen-layer[data-screen="${state.screen}"]`)?.removeAttribute("data-bar-left");
@@ -99,7 +101,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
       id: ++flightId.current,
       from: readLook(chromeOf(a), dev),
       to: () => { const live = bar(state.screen); return live ? readLook(chromeOf(live), dev) : null; },
-      src: leg === "open" ? { placeholder: chrome[state.locale].searchPlaceholder } : { query: state.query, caret: true },
+      src: leg === "submit" ? { query: state.query, caret: true } : { placeholder: state.store === "sm" ? "Search for “Maybelline 1014”" : chrome[state.locale].searchPlaceholder },
       dst: leg === "open" ? { query: "", caret: true, typing: true } : { query: state.query, back: true },
     });
   }, [state.screen, state.locale, state.query, reduced]);
@@ -132,9 +134,11 @@ export function Device({ state, setState, pinned }: DeviceProps) {
   const screen = (() => {
     switch (state.screen) {
       case "home":
-        return <HomeScreen locale={state.locale} onSearch={() => patch({ screen: "search" })} />;
+        return <ImageHome locale={state.locale} store={state.store} onSearch={() => patch({ screen: state.locale === "ar" ? "results" : "search" })} />;
       case "search":
-        return <SearchScreen onSubmit={() => patch({ screen: "results" })} />;
+        return state.store === "sm"
+          ? <SearchScreen query={state.query} suggestions={SM_SUGGESTIONS} onSubmit={() => patch({ screen: "results" })} />
+          : <SearchScreen onSubmit={() => patch({ screen: "results" })} />;
       case "transition":
         return (
           <TransitionScreen
@@ -158,6 +162,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
             locale={state.locale}
             offer={state.offer}
             query={state.query}
+            store={state.store}
             nudge={state.nudge}
             entrance={from === "search" ? "search" : from === "skeleton" ? "skeleton" : "none"}
             onSwitch={onSwitch}
@@ -191,6 +196,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
       <UndoToast
         show={state.screen === "results" && !!state.toast}
         to={state.locale}
+        top={state.store === "sm" ? 648 : 659}
         onTimeout={() => { if (!pinned) patch({ toast: false }); }}
         onUndo={() => relaunch(otherLocale(state.locale), { undoing: true })}
       />
@@ -215,33 +221,33 @@ export function Device({ state, setState, pinned }: DeviceProps) {
  * Solo mode: one device, no shell, parked on one beat — for comparing against
  * Figma, and for capturing motion frames.
  */
-export function SoloDevice({ start, beat, live }: { start: Locale; beat: string; live?: boolean }) {
-  const [state, setState] = useState<FlowState>(() => stateFor(start, beat));
+export function SoloDevice({ start, store = "noon", beat, live }: { start: Locale; store?: Store; beat: string; live?: boolean }) {
+  const [state, setState] = useState<FlowState>(() => stateFor(start, beat, store));
   const confirm = useConfirm();
   // A new confirm style starts the flow over — the sheet or toast in play
   // belongs to the old one.
   const firstConfirm = useRef(true);
   useEffect(() => {
     if (firstConfirm.current) { firstConfirm.current = false; return; }
-    if (live) setState(initialFor(start));
-  }, [confirm, live, start]);
+    if (live) setState(initialFor(start, store));
+  }, [confirm, live, start, store]);
 
   useEffect(() => {
     if (!live) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== "r") return;
-      setState(initialFor(start));
+      setState(initialFor(start, store));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [live, start]);
+  }, [live, start, store]);
 
   const device = <Device state={state} setState={setState} pinned={!live} />;
   if (!live) return device;
   return (
     <div className="solo-live">
       {device}
-      <RestartButton label="Restart the prototype" onRestart={() => setState(initialFor(start))} keyHint />
+      <RestartButton label="Restart the prototype" onRestart={() => setState(initialFor(start, store))} keyHint />
     </div>
   );
 }
@@ -260,48 +266,42 @@ function RestartButton({ label, onRestart, keyHint }: { label: string; onRestart
   );
 }
 
-type Props = { start: Locale; name: string; tag: string; note: string };
+type Props = { start: Locale; store: Store; tag: string; name: string };
 
-/** One phone plus its rail and controls: each lane runs its flow independently. */
-export function Lane({ start, name, tag, note }: Props) {
-  const [state, setState] = useState<FlowState>(() => initialFor(start));
+/**
+ * One phone, its id and a restart — nothing else. The people trying it know
+ * the context; the phone is the explanation.
+ */
+export function Lane({ start, store, tag, name }: Props) {
+  const [state, setState] = useState<FlowState>(() => initialFor(start, store));
   const confirm = useConfirm();
   const first = useRef(true);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    setState(initialFor(start));
-  }, [confirm, start]);
-  const steps = stepsFor(start, confirm);
-  const step = stepOf(state);
-  const at = steps.findIndex((x) => x.id === step);
+    setState(initialFor(start, store));
+  }, [confirm, start, store]);
 
   return (
-    <section className="lane">
+    <section className="lane v5-lane">
       <div className="lane-head">
         <div className="lane-title">
           <span className="version-ids">{tag}</span>
           <h3 className="lane-name">{name}</h3>
         </div>
-        <RestartButton label={`Restart the ${name} prototype`} onRestart={() => setState(initialFor(start))} />
+        <IconRestart label={`Restart ${tag}`} onRestart={() => setState(initialFor(start, store))} />
       </div>
-      <p className="lane-note">{note}</p>
-
       <Device state={state} setState={setState} />
-
-      <ol className="rail">
-        {steps.map((s, i) => (
-          <li key={s.id} className="rail-step" data-state={i === at ? "current" : i < at ? "done" : "todo"}>
-            <span className="rail-num">{i + 1}</span>
-            {s.label}
-          </li>
-        ))}
-      </ol>
-
-      <div className="lane-foot">
-        <span className="lane-state">
-          {state.screen} · {state.locale} · {state.offer ? state.nudge : "no nudge"}{state.sheetOpen ? " · sheet" : ""}{state.toast ? " · toast" : ""}
-        </span>
-      </div>
     </section>
+  );
+}
+
+function IconRestart({ label, onRestart }: { label: string; onRestart: () => void }) {
+  return (
+    <button type="button" className="lane-restart lane-restart--icon" onClick={onRestart} aria-label={label} title="Restart">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M2.75 8a5.25 5.25 0 1 0 1.54-3.71" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M2.5 2.75v2.9h2.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
   );
 }

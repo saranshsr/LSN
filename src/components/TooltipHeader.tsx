@@ -41,10 +41,23 @@ type Props = {
    *  (Nudge banner 528:26664, Language=Arabic app). */
   locale: Locale;
   query: string;
+  /** super mall's results header is a title bar, not a search field
+   *  (SM1 · 03, 603:42880): back · title · search, the banner under it. */
+  bar?: "search" | "title";
   onSwitch: () => void; onDismiss: () => void; onHeight?: (h: number) => void;
 };
 
-export function TooltipHeader({ state, locale, query, onSwitch, onDismiss, onHeight }: Props) {
+/** Where each header's bar sits, and what it leaves below: noon's search field
+ *  (A1 · 03) and super mall's title bar (SM1 · 03: caret y100, card y106–154,
+ *  chips at 154 open and at 94 shut). */
+const GEO = {
+  search: { stageY: STAGE_Y, padOpen: PAD_B, padShut: PAD_B },
+  title: { stageY: 48, padOpen: 0, padShut: 2 },
+};
+
+export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, onDismiss, onHeight }: Props) {
+  const geo = GEO[bar];
+  const geoRef = useRef(geo); geoRef.current = geo;
   const copy = NUDGE[locale];
   const WORDS = copy.words;
   // Mirrored, the geometry is reflected about the stage's centre line — every
@@ -195,8 +208,9 @@ export function TooltipHeader({ state, locale, query, onSwitch, onDismiss, onHei
     // frame of the return — the card starts as an invisible 3px sliver at y58,
     // already below the collapsed bar. The card floats; it may overhang.
     const held = Math.max(stageH, tileBottom);
-    s(r.header.current, { height: `${STAGE_Y + held + PAD_B}px` });
-    onHeight?.(STAGE_Y + Math.max(stageH, tileBottom) + PAD_B);
+    const G = geoRef.current, pad = lerp(G.padOpen, G.padShut, clamp(v.lay));
+    s(r.header.current, { height: `${G.stageY + held + pad}px` });
+    onHeight?.(G.stageY + Math.max(stageH, tileBottom) + pad);
   };
 
   useLayoutEffect(apply);
@@ -206,7 +220,7 @@ export function TooltipHeader({ state, locale, query, onSwitch, onDismiss, onHei
 
   return (
     <header className="plp-header tt-header" ref={r.header}>
-      <div className={mirror ? "tt-stage tt-stage--mirror" : "tt-stage"} style={{ left: STAGE_X, top: STAGE_Y, width: W }}>
+      <div className={mirror ? "tt-stage tt-stage--mirror" : "tt-stage"} style={{ left: STAGE_X, top: geo.stageY, width: W }}>
         {/* Recedes toward its pointer, wherever the pointer is. */}
         <div className="tt-pop" ref={r.pop} style={{ transformOrigin: `${mirror ? W - NOTCH.tip : NOTCH.tip}px ${CARD.y - 7}px` }}>
           <svg className="tt-notch" ref={r.notch} width={NOTCH.w} height={NOTCH.h} viewBox="0 0 18 7" preserveAspectRatio="none" aria-hidden="true">
@@ -245,9 +259,29 @@ export function TooltipHeader({ state, locale, query, onSwitch, onDismiss, onHei
           </button>
         </div>
         <div className="tt-search" ref={r.search}>
-          <SearchBar query={query} back />
+          {bar === "title" ? <TitleBar title={query} /> : <SearchBar query={query} back />}
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * super mall's results title bar (603:42880): a 24 back arrow, the query as a
+ * 16/22 SemiBold title, and a 24 search icon at the far end. Laid out by the
+ * device's dir, so the Arabic app mirrors it.
+ */
+function TitleBar({ title }: { title: string }) {
+  return (
+    <div className="titlebar">
+      <svg className="titlebar-back" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.7496 18C14.7496 18.1925 14.6759 18.3838 14.5296 18.53C14.2371 18.8225 13.7621 18.8225 13.4684 18.53L7.4684 12.53C7.1759 12.2375 7.1759 11.7625 7.4684 11.4688L13.4684 5.46877C13.7609 5.17627 14.2359 5.17627 14.5296 5.46877C14.8221 5.76127 14.8221 6.23627 14.5296 6.53001L9.05965 12L14.5296 17.47C14.6759 17.6163 14.7496 17.8088 14.7496 18Z" fill="#0E0E0E" />
+      </svg>
+      <span className="titlebar-title">{title}</span>
+      <svg className="titlebar-search" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M10.5 3.25C6.5025 3.25 3.25 6.5025 3.25 10.5C3.25 14.4975 6.5025 17.75 10.5 17.75C14.4975 17.75 17.75 14.4975 17.75 10.5C17.75 6.5025 14.4975 3.25 10.5 3.25ZM10.5 16.25C7.33 16.25 4.75 13.67 4.75 10.5C4.75 7.33 7.33 4.75 10.5 4.75C13.67 4.75 16.25 7.33 16.25 10.5C16.25 13.67 13.67 16.25 10.5 16.25Z" fill="#0E0E0E" />
+        <path d="M20.53 19.47L17.53 16.47C17.2375 16.1775 16.7625 16.1775 16.4687 16.47C16.1762 16.7625 16.1762 17.2375 16.4687 17.5312L19.4688 20.5312C19.615 20.6775 19.8075 20.7513 19.9987 20.7513C20.19 20.7513 20.3825 20.6775 20.5287 20.5312C20.8212 20.2388 20.8212 19.7638 20.5287 19.47H20.53Z" fill="#0E0E0E" />
+      </svg>
+    </div>
   );
 }

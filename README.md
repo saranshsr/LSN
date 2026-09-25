@@ -3,34 +3,24 @@
 Prototype of noon's app-language nudge, iteration 5 — Figma
 `JovVwactrtpNkNSPfu4tsm`, page `528:2` "Iteration 5 - 25 Sep".
 
-Two phones, each offering the other language:
+Pick a flow; each shows its two versions side by side — with the sheet, and the
+instant switch with undo. One toggle picks the sheet (keys 1 / 2).
 
-| Lane | Starts on | Offers |
+| Flow | Versions | Starts on |
 | --- | --- | --- |
-| English app → Arabic (A1 / A2) | Home → an Arabic search | العربية |
-| Arabic app → English (B1 / B2) | Arabic results for an English search | English |
+| English → Arabic | A1 · A2 | the Eid home, English app |
+| Arabic → English | B1 · B2 | the Eid home, Arabic app |
+| super mall | SM1 · SM2 | super mall's home, English app |
 
-One switcher picks how the switch is confirmed, for both lanes:
-
-| Key | Confirm | Figma |
-| --- | --- | --- |
-| 1 | Sheet · option 1 — copy, the way-back icon path, Not now + switch | 530:27774 |
-| 2 | Sheet · option 2 — the Account page illustration, one switch button | 530:28151 |
-| 3 | Instant switch + undo toast (4 s) | A2 / B2, 528:26667 |
-
-The banner (528:26664) forms its button in the app's language and turns it
-into the offered one (535:4693). Motion is the approved tooltip motion — the
-arrival, the fold into the bar on scroll and back on the way up, ✕ — mirrored
-for the Arabic app; the splash is the rebrand Hala ⇄ هلا morph, reversed for
-the way back to English.
+Homes and super mall's product grids are Figma's own renders, with the status
+bar, bottom nav and search bar live on top. The banner, sheets, toast, search,
+noon's results and all motion are code.
 
 ```
 npm install
 npm run dev        # http://localhost:5193
 ```
 
-- `?sheet=2` — open the "with the sheet" section on option 2 (keys 1 / 2 switch it)
-- `?confirm=sheet2` / `?confirm=instant` — the confirm style for `?device=` and `?solo=`
-- `?device=en` / `?device=ar` — one bare 375 × 812 phone to present from (R restarts)
-- `?solo=ar&beat=sheet` — park a phone on a beat (home, search, offered, sheet,
-  transition, skeleton, switched, toast)
+- `?flow=ar` / `?flow=sm`, `?sheet=2` — open on a view
+- `?device=en|ar|sm&confirm=sheet1|sheet2|instant` — one bare phone to present from (R restarts)
+- `?solo=sm&beat=sheet` — park a phone on a beat

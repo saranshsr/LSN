@@ -157,7 +157,7 @@ export const chrome: Record<Locale, Chrome> = {
     },
   },
   ar: {
-    searchPlaceholder: "ابحث عن “ميبلين”", // Search for "Maybelline"
+    searchPlaceholder: "ابحث عن “Maybelline”", // Search for "Maybelline" (B1 · 01, 584:13888)
     addressLabel: "المنزل", // Home
     address: "مجمع BDA، شارع 100 قدم، البلوك الثالث",
     // Filter / Sort / Deals / Brand / Formal Abayas / Ramadan / Sports
