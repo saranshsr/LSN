@@ -20,11 +20,9 @@ import type { StateId } from "../motion/nudge-core";
  *          from it (a sliver spreads, then drops open), the icon tile pops, the
  *          words rise one by one, the pills form, and one slow, soft band of
  *          light passes over the card's background.
- *   A → B  collapse (scroll): the banner tucks back into the bar it came out
- *          of — the card rises, carrying its glyph, copy and buttons with it,
- *          and reshapes into the bar's 351 × 44 as its tint dissolves, hidden
- *          behind the bar; the results close up under it in the same spring.
- *          Scrolling back lets it drop out of the bar the same way.
+ *   A → B  collapse: the bar makes room, the tile slides along its own row and
+ *          curves up into the button slot — becoming the button — and only then
+ *          does the card retract up into the bar and the content close up.
  *   A → C  dismiss: the whole tooltip recedes toward its pointer as one layer.
  *          The glyph survives (the product's dismiss ≠ never), so the bar then
  *          makes room and the glyph pops in beside it.
@@ -92,9 +90,6 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
   /** super mall: the banner last left by morphing into the title bar (scroll),
    *  so it comes back by morphing out of it rather than unfolding afresh. */
   const morphed = useRef(false);
-  /** The banner is travelling into (or out of) the bar: its contents ride
-   *  with the card instead of staying pinned while the card wipes over them. */
-  const riding = useRef(false);
   const barRef = useRef(bar); barRef.current = bar;
   useEffect(() => {
     // Flow v2 (382:79086): no glyph. B (scrolled) and C (✕) both rest as P, the
@@ -113,34 +108,30 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     sheenStart.current = entering.current && !ch.reduced && !arrived.current ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
     if (entering.current) { arrived.current = true; cta.arrive(); }
 
-    // Scrolled away (B, not ✕) — both stores: the banner doesn't recede — it
-    // tucks back into the bar. The copy clears, then the card itself slides up and
+    // super mall, scrolled away (B, not ✕): the banner doesn't recede — it
+    // becomes the header. The copy clears, then the card itself slides up and
     // reshapes from 351 × 48 into the title bar's 351 × 44 while its tint
     // dissolves; the back arrow, title and search stay drawn above it, and the
     // results close up under it in the same motion.
-    // noon took the recede before (28 Sep: "it just fades unclearly"); it
-    // now retracts the way it arrived, like super mall.
-    const morph = true;
+    const morph = barRef.current === "title";
     if (morph && from === "A" && to === "P" && state === "B") {
-      morphed.current = true; riding.current = true;
-      // The copy lets go a beat before the card moves, so it reads as tucked
-      // away rather than smeared; the glyph goes last, with the card.
+      morphed.current = true;
       ch.to(
         { ...HIDDEN_COPY, geo: 1, uf: 1, drop: 1, nt: 1, iv: 0, ic: 0, dm: 0, lay: 1 },
-        { txt: 0, nn: 0.02, sb: 0.04, wm: 0, iv: 0.08, geo: 0.06, lay: 0.06 },
-        (k) => (k === "geo" ? spring(1.05, 1) : k === "lay" ? spring(1.05, 1) : k === "iv" ? spring(0.8, 1) : SPRINGS[k]),
+        { txt: 0, nn: 0.02, sb: 0.04, wm: 0, iv: 0, geo: 0.1, lay: 0.1 },
+        (k) => (k === "geo" ? spring(1.05, 1) : k === "lay" ? spring(1.1, 1) : SPRINGS[k]),
       );
       return;
     }
     if (morph && entering.current && morphed.current) {
       // Back up: the reverse — the title bar lets the card go, it drops and
       // reshapes into the banner as its tint returns, then the copy forms.
-      morphed.current = false; riding.current = true;
+      morphed.current = false;
       ch.to(STATES.A, { geo: 0, lay: 0, nt: 0, iv: 0.22, wm: 0.2, txt: 0.24, nn: 0.3, sb: 0.36 },
         (k) => (k === "geo" ? spring(1.05, 1) : k === "lay" ? spring(1.1, 1) : spr(k)));
       return;
     }
-    morphed.current = false; riding.current = false;
+    morphed.current = false;
 
     if (from === "A" && to === "P") {
       // Out: step back as one layer toward the pointer while the layout gives the
@@ -176,14 +167,9 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     const cx = mx(cardX, cardW);
 
     s(r.card.current, { transform: `translate(${cx}px, ${cardY}px)`, width: `${cardW}px`, height: `${cardH}px`, borderRadius: `${cardR}px`, opacity: String(clamp(v.nt * 2)) });
-    // Riding, the tint holds until the card is nearly under the bar, so the
-    // pale card is SEEN sliding up into it rather than whitening mid-way.
-    const tint = riding.current ? clamp((1 - g) / 0.22) : clamp(1 - g * 1.3);
-    s(r.grad.current, { opacity: String(tint) });
-    // Riding: the contents keep their place in the CARD, so they travel with it.
-    const innerY = riding.current ? -CARD.y : -cardY, rise = riding.current ? cardY - CARD.y : 0;
-    s(r.inner.current, { transform: `translate(${-cx}px, ${innerY}px)` });
-    s(r.ht.current, { transform: `translate(${-cx}px, ${innerY}px)${M ? " scaleX(-1)" : ""}`, opacity: String(tint) });
+    s(r.grad.current, { opacity: String(clamp(1 - g * 1.3)) });
+    s(r.inner.current, { transform: `translate(${-cx}px, ${-cardY}px)` });
+    s(r.ht.current, { transform: `translate(${-cx}px, ${-cardY}px)${M ? " scaleX(-1)" : ""}`, opacity: String(clamp(1 - g * 1.3)) });
     s(r.notch.current, {
       opacity: String(clamp(v.nt * 1.5) * clamp(1 - g * 2.2)),
       transform: `translate(${mx(NOTCH.tip - NOTCH.w / 2, NOTCH.w)}px, ${cardY - NOTCH.h + lerp(-12, 0, v.nt)}px) scale(${Math.max(0, lerp(0.5, 1, v.nt))}, ${Math.max(0, v.nt)})`,
@@ -191,17 +177,19 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     s(r.search.current, { transform: `translate(${mx(v.sx, v.swd)}px, 0px)`, width: `${v.swd}px` });
 
     s(r.tile.current, {
-      transform: `translate(${mx(tx - ts / 2, ts)}px, ${ty + rise - ts / 2}px)`, width: `${ts}px`, height: `${ts}px`, borderRadius: `${tr}px`,
-      // Riding, the glyph goes under the bar with the card and clears as it does.
-      opacity: String(riding.current ? iv * clamp(1 - g * 1.6) : iv), filter: iv < 0.999 && !riding.current ? `blur(${(1 - iv) * 4}px)` : "none",
-      zIndex: riding.current ? "1" : "",
+      transform: `translate(${mx(tx - ts / 2, ts)}px, ${ty - ts / 2}px)`, width: `${ts}px`, height: `${ts}px`, borderRadius: `${tr}px`,
+      opacity: String(iv), filter: iv < 0.999 ? `blur(${(1 - iv) * 4}px)` : "none",
       pointerEvents: cur.current !== "A" && v.ic > 0.6 && iv > 0.6 ? "auto" : "none",
     });
     s(r.ring.current, { opacity: String(clamp((v.ic - 0.4) / 0.5)) });
 
     // One layer receding toward the pointer (dismiss).
+    // Cleaner (28 Sep): the fade LEADS — gone by 42% of the spring, eased — so
+    // the results closing up never show through a half-faded card; a short
+    // lift toward the bar, a barely-there shrink, blur held under 1.5 px.
+    const fo = clamp(dm / 0.42), fe = fo * fo * (3 - 2 * fo);
     s(r.pop.current, dm > 0.0005
-      ? { opacity: String(clamp(1 - dm * 1.1)), transform: `translateY(${-22 * dm}px) scale(${lerp(1, 0.94, dm)})`, filter: `blur(${dm * 3}px)` }
+      ? { opacity: String(1 - fe), transform: `translateY(${-8 * dm}px) scale(${lerp(1, 0.97, dm)})`, filter: fo < 1 ? `blur(${fe * 1.5}px)` : "none" }
       : { opacity: "", transform: "", filter: "" });
 
     // Copy: forms on arrival, clears on collapse.
@@ -230,18 +218,15 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
       if (r.wm.current) { r.wm.current.style.opacity = String(clamp(w2)); r.wm.current.style.transform = `scale(${lerp(1.12, 1, w2)})`; }
     } else {
       words.forEach((w) => look(w, 1, 0, 0, 0));
-      const ride = riding.current;
       const exit = (el: HTMLElement | null, c: number, drift: number) => {
         if (!el) return;
-        // Riding, the card carries it up: it only lifts a little and clears.
-        if (ride) look(el, clamp(1 - c * 1.6), clamp(c) * 2, 0, -c * 4);
-        else look(el, clamp(1 - c * 1.15), clamp(c) * 7, c * drift, -c * 10, 1 - clamp(c) * 0.06);
+        look(el, clamp(1 - c * 1.15), clamp(c) * 7, c * drift, -c * 10, 1 - clamp(c) * 0.06);
         el.style.pointerEvents = c > 0.5 ? "none" : "auto";
         el.querySelectorAll<HTMLElement>(".pill-surface, .pill-label").forEach((n) => look(n, 1, 0, 0, 0));
       };
       exit(r.label.current, v.txt, 18); exit(r.nn.current, v.nn, 12); exit(r.sb.current, v.sb, 8);
       const sg = M ? -1 : 1;
-      if (r.wm.current) { r.wm.current.style.opacity = String(clamp(1 - v.wm)); r.wm.current.style.transform = ride ? "none" : `translate(${sg * v.wm * 30}px, ${-v.wm * 14}px) rotate(${-sg * v.wm * 8}deg)`; }
+      if (r.wm.current) { r.wm.current.style.opacity = String(clamp(1 - v.wm)); r.wm.current.style.transform = `translate(${sg * v.wm * 30}px, ${-v.wm * 14}px) rotate(${-sg * v.wm * 8}deg)`; }
     }
 
     // "English → Arabic": settled once every channel is at rest in A.
