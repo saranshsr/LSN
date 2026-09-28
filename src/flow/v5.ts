@@ -80,6 +80,9 @@ export const NUDGE: Record<Locale, {
   /** The same question in the offered language — the first thing "whole"
    *  shows. Written as the other app's banner writes it (528:26664). */
   offered: { words: Word[]; dir: "ltr" | "rtl" };
+  /** The flip's first sentence (28 Sep): ALL of it in the app's language,
+   *  the offered language named in the app's own words too. */
+  own: Word[];
   gloss: string;
   from: { text: string; lang: Locale };
   to: { text: string; lang: Locale };
@@ -90,6 +93,7 @@ export const NUDGE: Record<Locale, {
     words: [{ text: "Switch" }, { text: "app" }, { text: "to" }, { text: "العربية‎?", strong: true }],
     // "Switch app to Arabic?"
     offered: { dir: "rtl", words: [{ text: "تحويل" }, { text: "التطبيق" }, { text: "إلى" }, { text: "العربية؟", strong: true }] },
+    own: [{ text: "Switch" }, { text: "app" }, { text: "to" }, { text: "Arabic?", strong: true }],
     gloss: "Switch app to Arabic?",
     from: { text: "Switch", lang: "en" },
     to: { text: "تبديل", lang: "ar" }, // "Switch"
@@ -99,6 +103,8 @@ export const NUDGE: Record<Locale, {
     // "Switch app to English?" — U+200F keeps the "؟" after the Latin word.
     words: [{ text: "تحويل" }, { text: "التطبيق" }, { text: "إلى" }, { text: "English‏؟", strong: true }],
     offered: { dir: "ltr", words: [{ text: "Switch" }, { text: "app" }, { text: "to" }, { text: "English?", strong: true }] },
+    // "Switch app to English?", English named in Arabic.
+    own: [{ text: "تحويل" }, { text: "التطبيق" }, { text: "إلى" }, { text: "الإنجليزية؟", strong: true }],
     gloss: "Switch app to English?",
     from: { text: "تبديل", lang: "ar" }, // "Switch"
     to: { text: "Switch", lang: "en" },

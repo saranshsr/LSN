@@ -312,10 +312,11 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
                 <p className="nudge-label tt-label" ref={r.label} aria-label={copy.gloss}>
                   {/* Two layers: the sentence the banner arrives with (--first) and
                       the one it rests on (--app). Whole: offered → app. Flip:
-                      app → offered. Button only: the app's alone. */}
+                      all in the app's language → all in the offered one.
+                      Button only: the app's alone. */}
                   {whole || flip ? (
                     <span className="tt-lbl tt-lbl--first" {...(whole ? { dir: copy.offered.dir, lang: locale === "en" ? "ar" : "en" } : {})}>
-                      {sentence(whole ? copy.offered.words : WORDS)}
+                      {sentence(whole ? copy.offered.words : copy.own)}
                     </span>
                   ) : null}
                   <span className="tt-lbl tt-lbl--app" {...(flip ? { dir: copy.offered.dir, lang: locale === "en" ? "ar" : "en" } : {})}>
