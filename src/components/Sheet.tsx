@@ -143,8 +143,11 @@ function WayBack() {
   }, [reduced, animate, scope]);
 
   return (
+    // The outer tile keeps the Arabic mirror (a CSS transform); the swell runs
+    // on the layer inside it so the two never overwrite each other.
+    <div className="s1-path" aria-hidden="true" ref={scope}>
     <motion.div
-      className="s1-path" aria-hidden="true" ref={scope}
+      className="s1-path-in"
       initial={reduced ? false : { opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1, transition: { ...SPR.layout, delay: at(0.06) } }}
     >
@@ -174,6 +177,7 @@ function WayBack() {
         <Icon name="system-language-bold" size={20.4} />
       </span>
     </motion.div>
+    </div>
   );
 }
 
