@@ -19,19 +19,17 @@ import { ConfirmContext, confirmFromUrl, TextStyleContext, type Store, type Text
  * `&confirm=sheet1|sheet2|instant`) is one bare phone to present from;
  * `?solo=en&beat=sheet` parks one on a beat.
  */
-type Flow = "en" | "ar" | "sm" | "smar";
+type Flow = "en" | "ar" | "sm";
 type SheetType = "sheet1" | "sheet2";
 
 const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [string, string] }[] = [
   { id: "en", label: "English → Arabic", start: "en", store: "noon", ids: ["A1", "A2"] },
   { id: "ar", label: "Arabic → English", start: "ar", store: "noon", ids: ["B1", "B2"] },
   { id: "sm", label: "super mall · EN → AR", start: "en", store: "sm", ids: ["SM1", "SM2"] },
-  // No Figma section yet: the same flow in super mall's Arabic app.
-  { id: "smar", label: "super mall · AR → EN", start: "ar", store: "sm", ids: ["SM·B1", "SM·B2"] },
 ];
 
 const q = () => new URLSearchParams(location.search);
-const flowFromUrl = (): Flow => { const f = q().get("flow"); return f === "ar" || f === "sm" || f === "smar" ? f : "en"; };
+const flowFromUrl = (): Flow => { const f = q().get("flow"); return f === "ar" || f === "sm" ? f : "en"; };
 const textFromUrl = (): TextStyle => (q().get("text") === "whole" ? "whole" : "button");
 const TEXTS: { id: TextStyle; label: string }[] = [
   { id: "button", label: "Button only" },
@@ -47,7 +45,7 @@ const SHEETS: { id: SheetType; label: string }[] = [
 function solo() {
   const p = q();
   const d = p.get("device") ?? p.get("solo");
-  if (d !== "en" && d !== "ar" && d !== "sm" && d !== "smar") return null;
+  if (d !== "en" && d !== "ar" && d !== "sm") return null;
   const f = FLOWS.find((x) => x.id === d)!;
   return { start: f.start, store: f.store, beat: p.get("beat") ?? "home", live: p.has("device") };
 }

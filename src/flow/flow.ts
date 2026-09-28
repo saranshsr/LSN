@@ -37,11 +37,9 @@ export type FlowState = {
   undone?: boolean;
 };
 
-/** Every lane starts on its Home (A · 01, B · 01, SM · 01) — except super
- *  mall in the Arabic app, which has no Home or Search frames: it opens on
- *  its Arabic results (SM1 · 08's layout) with the banner offering English. */
+/** Every lane starts on its Home (A · 01, B · 01, SM · 01). */
 export const initialFor = (start: Locale, store: Store = "noon"): FlowState => ({
-  screen: store === "sm" && start === "ar" ? "results" : "home",
+  screen: "home",
   locale: start,
   nudge: "offered",
   sheetOpen: false,

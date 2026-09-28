@@ -37,8 +37,7 @@ export type Store = "noon" | "sm";
  *  Arabic app in English (B1 · 02, 539:26596). super mall searches makeup. */
 export const QUERY_FOR: Record<Store, Record<Locale, string>> = {
   noon: { en: "عبايات", ar: "abaya" }, // "abayas"
-  // super mall's Arabic app has no frames; it searched in English, like noon's.
-  sm: { en: "مكياج", ar: "makeup" }, // "makeup"
+  sm: { en: "مكياج", ar: "makeup" }, // "makeup" (super mall is EN → AR only)
 };
 
 /** SM1 · 02 Search, typing (603:26596). */

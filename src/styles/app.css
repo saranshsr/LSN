@@ -1136,6 +1136,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 .s1-stop--profile { left: 8.1px; top: 8.1px; }
 .s1-stop--lang { left: 69.2px; top: 69.2px; color: #0f7eff; }
 .s1-chev { position: absolute; }
+/* The tap on the language stop: a ring spreads off its edge. */
+.s1-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid #0f7eff; opacity: 0; pointer-events: none; }
 .s1-actions { display: grid; grid-template-columns: 158.5px 156.5px; gap: 12px; padding: 12px; }
 
 .v5-btn {
