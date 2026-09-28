@@ -1282,7 +1282,9 @@ ul { margin: 0; padding: 0; list-style: none; }
   /* Figma's background blur r2 (660:20226) is a CSS radius of 1. */
   -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px); opacity: 0; pointer-events: none;
 }
-.ls-fade { left: 0; top: 147px; width: 351px; height: 329px; }
+.ls-fade { left: 0; top: 127px; width: 351px; height: 329px; }
+.ls-fade--back { top: 110px; opacity: 0.82; }
+.ls-fade-base { left: 0; bottom: 0; width: 351px; height: 72px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 40%); }
 /* 660:21128 · Address container: anchored 20 above the popup's bottom, the
    copy 315 wide, 24 above the actions. */
 .ls-copy { position: absolute; left: 0; bottom: 20px; width: 351px; padding: 0 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; z-index: 5; }

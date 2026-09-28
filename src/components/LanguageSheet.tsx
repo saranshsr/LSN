@@ -79,7 +79,12 @@ export function LanguageSheet({ open, locale, onCancel, onConfirm }: Props) {
             <img className="ls-layer ls-phone" src="/img/sheet520/iphone-15-pro-frame@2x.png" alt="" />
             <div className="ls-frost" data-k="frost" />
           </div>
+          {/* The two wave fades under the copy (660:20228 at 0.82, 660:20227),
+              lifted 20 over the frame so less of the phone reads behind the text. */}
+          <img className="ls-layer ls-fade ls-fade--back" src="/img/sheet520/wave-fade.svg" alt="" width={351} height={329} />
           <img className="ls-layer ls-fade" src="/img/sheet520/wave-fade.svg" alt="" width={351} height={329} />
+          {/* Lifted, the fade ends above the popup's foot: its white carries on down. */}
+          <div className="ls-layer ls-fade-base" />
           <div className="ls-copy">
             <div className="ls-t">
               <h2 dir="auto">{c.title}</h2>
