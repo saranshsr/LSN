@@ -14,11 +14,15 @@ const LABEL = { en: ["Sort", "Filter"], ar: ["تصفية", "ترتيب"] } as co
 
 /** Two of the DS left-arrows, turned up and down (the "Sort" instance). */
 function SortIcon() {
-  const arrow = "M1.272 4.5363H15.672V6.3363H1.272V4.5363Z M2.54558 5.4364L6.70919 1.27279L5.43639 0L0 5.4364L5.43639 10.8728L6.70919 9.6L2.54558 5.4364Z";
+  // Stem and head as separate shapes: in one path their windings cancel where
+  // they overlap and leave a notch at the join.
+  const stem = "M1.272 4.5363H15.672V6.3363H1.272V4.5363Z";
+  const head = "M2.54558 5.4364L6.70919 1.27279L5.43639 0L0 5.4364L5.43639 10.8728L6.70919 9.6L2.54558 5.4364Z";
+  const arrow = (t: string) => <g transform={t}><path d={stem} fill="#fff" /><path d={head} fill="#fff" /></g>;
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
-      <path d={arrow} fill="#fff" transform="translate(13.273 4.2) rotate(90)" />
-      <path d={arrow} fill="#fff" transform="translate(10.8 19.872) rotate(-90)" />
+      {arrow("translate(13.273 4.2) rotate(90)")}
+      {arrow("translate(10.8 19.872) rotate(-90)")}
     </svg>
   );
 }
