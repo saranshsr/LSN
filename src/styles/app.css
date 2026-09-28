@@ -1093,6 +1093,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tt-label .tt-word--strong { font-weight: 600; }
 .tt-row .btn-neutral--bold { font-size: 12px; line-height: 16px; }
 .tt-row .btn-neutral--quiet .pill-surface { background: #fff; border-color: #fff; }
+/* The flip's No (28 Sep): a quiet text pill, set like the Yes beside it. */
+.tt-row .btn-neutral--text { font-size: 12px; line-height: 16px; }
 .tt-watermark { left: auto; top: 58px; inset-inline-start: 122px; width: 160px; height: 48px; filter: none; }
 .tt-halftone {
   top: 58px; height: 48px; opacity: 1; mix-blend-mode: normal;

@@ -18,7 +18,7 @@ import { SPR } from "./springs";
  * that comes back (scrolled away and back) is already settled.
  * Reduced motion: a plain cross-fade.
  */
-const HOLD_MS = 900;
+export const HOLD_MS = 900;
 const OUT_END = 0.6, IN_START = 0.25, DRIFT_OUT = 3, RISE_IN = 4, BLUR = 2;
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 

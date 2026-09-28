@@ -56,13 +56,27 @@ type Stage = "wait" | "hold" | "morph" | "done" | "spent";
  * Below, `en` is the word the pill STARTS with and `ar` the one it ends on;
  * the names are kept from the English → Arabic original, whose maths this is.
  */
-export function useCtaMorph(locale: Locale, enabled = true) {
+type Word = { text: string; lang: Locale };
+type Opts = {
+  /** Other words to turn between (the flip's Yes / No). */
+  from?: Word; to?: Word; gloss?: string;
+  /** Reading time before the turn — the flip holds as long as its sentence
+   *  (useTextMorph), so the sentence and the button turn on the same frame. */
+  hold?: number;
+  /** The pill's classes, for the hidden copies that measure it. */
+  pillClass?: string;
+};
+
+export function useCtaMorph(locale: Locale, enabled = true, opts: Opts = {}) {
   const n = NUDGE[locale];
-  const action = { text: n.to.text, lang: n.to.lang, gloss: n.gloss };
+  const from = opts.from ?? n.from, to = opts.to ?? n.to;
+  const hold = opts.hold ?? HOLD_MS;
+  const pillClass = opts.pillClass ?? "btn-neutral btn-neutral--bold";
+  const action = { text: to.text, lang: to.lang, gloss: opts.gloss ?? n.gloss };
   // Off in "Whole nudge": there the button reads the offered language throughout.
   const active = enabled;
-  const words = { en: n.from.text, ar: n.to.text };
-  const langs = { en: n.from.lang, ar: n.to.lang };
+  const words = { en: from.text, ar: to.text };
+  const langs = { en: from.lang, ar: to.lang };
   // The attached header reads these from a frame loop created once, so every
   // function below reads refs, never render-time values.
   const reducedNow = !!useReducedMotion();
@@ -149,7 +163,7 @@ export function useCtaMorph(locale: Locale, enabled = true) {
     const reduced = reducedRef.current;
     const now = performance.now();
     if (stage.current === "wait" && resting) { stage.current = "hold"; settledAt.current = now; trace("settled"); }
-    if (stage.current === "hold" && now - settledAt.current >= HOLD_MS) { start(); trace("morph"); }
+    if (stage.current === "hold" && now - settledAt.current >= hold) { start(); trace("morph"); }
 
     const w = widths.current ?? measure();
     if (!w) return;
@@ -203,8 +217,8 @@ export function useCtaMorph(locale: Locale, enabled = true) {
   );
   const measurers = measuring ? (
     <>
-      <span className="btn-neutral btn-neutral--bold pill-measure" ref={measEn} lang={langs.en} aria-hidden="true">{words.en}</span>
-      <span className="btn-neutral btn-neutral--bold pill-measure" ref={measAr} lang={langs.ar} aria-hidden="true">{words.ar}</span>
+      <span className={`${pillClass} pill-measure`} ref={measEn} lang={langs.en} aria-hidden="true">{words.en}</span>
+      <span className={`${pillClass} pill-measure`} ref={measAr} lang={langs.ar} aria-hidden="true">{words.ar}</span>
     </>
   ) : null;
 

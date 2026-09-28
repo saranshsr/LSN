@@ -53,10 +53,19 @@ export const SM_SUGGESTIONS = [
  *            turns into the app's; the button stays in the offered one
  *   button — the sentence is in the app's language; only the button turns
  *            (CTA · transition 535:4693)
- * "button" is the default (28 Sep); `?text=whole` opens a link on the other. */
-export type TextStyle = "whole" | "button";
+ *   flip   — the reverse of whole (28 Sep): it arrives entirely in the APP's
+ *            language, holds, then the whole of it — sentence and button —
+ *            turns into the offered language, and rests there
+ * "button" is the default (28 Sep); `?text=whole` / `?text=flip` open the others. */
+export type TextStyle = "whole" | "button" | "flip";
 export const TextStyleContext = createContext<TextStyle>("button");
 export const useTextStyle = () => useContext(TextStyleContext);
+
+/** The flip's two buttons (28 Sep): today's Switch + ✕, or Yes (primary) + No.
+ *  `?buttons=yesno`. Only the flip offers the choice. */
+export type ButtonStyle = "switch" | "yesno";
+export const ButtonStyleContext = createContext<ButtonStyle>("switch");
+export const useButtonStyle = () => useContext(ButtonStyleContext);
 
 const other = (l: Locale): Locale => (l === "en" ? "ar" : "en");
 export { other as otherLocale };
@@ -81,6 +90,9 @@ export const NUDGE: Record<Locale, {
   from: { text: string; lang: Locale };
   to: { text: string; lang: Locale };
   close: string;
+  /** Yes / No (the flip's second button style): app's language → offered. */
+  yes: { from: { text: string; lang: Locale }; to: { text: string; lang: Locale } };
+  no: { from: { text: string; lang: Locale }; to: { text: string; lang: Locale } };
 }> = {
   en: {
     // U+200E keeps the "?" after the Arabic word in the left-to-right line.
@@ -91,6 +103,8 @@ export const NUDGE: Record<Locale, {
     from: { text: "Switch", lang: "en" },
     to: { text: "تبديل", lang: "ar" }, // "Switch"
     close: "Dismiss",
+    yes: { from: { text: "Yes", lang: "en" }, to: { text: "نعم", lang: "ar" } },
+    no: { from: { text: "No", lang: "en" }, to: { text: "لا", lang: "ar" } },
   },
   ar: {
     // "Switch app to English?" — U+200F keeps the "؟" after the Latin word.
@@ -100,6 +114,8 @@ export const NUDGE: Record<Locale, {
     from: { text: "تبديل", lang: "ar" }, // "Switch"
     to: { text: "Switch", lang: "en" },
     close: "إغلاق", // "Close"
+    yes: { from: { text: "نعم", lang: "ar" }, to: { text: "Yes", lang: "en" } }, // "Yes"
+    no: { from: { text: "لا", lang: "ar" }, to: { text: "No", lang: "en" } }, // "No"
   },
 };
 

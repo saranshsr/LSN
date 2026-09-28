@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Lane, SoloDevice } from "./shell/Lane";
 import type { Locale } from "./data/copy";
-import { ConfirmContext, confirmFromUrl, TextStyleContext, type Store, type TextStyle } from "./flow/v5";
+import { ButtonStyleContext, ConfirmContext, confirmFromUrl, TextStyleContext, type ButtonStyle, type Store, type TextStyle } from "./flow/v5";
 
 /**
  * Three flows, each shown as its two versions side by side — the sheet, and
@@ -30,10 +30,18 @@ const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [strin
 
 const q = () => new URLSearchParams(location.search);
 const flowFromUrl = (): Flow => { const f = q().get("flow"); return f === "ar" || f === "sm" ? f : "en"; };
-const textFromUrl = (): TextStyle => (q().get("text") === "whole" ? "whole" : "button");
+const textFromUrl = (): TextStyle => { const t = q().get("text"); return t === "whole" || t === "flip" ? t : "button"; };
 const TEXTS: { id: TextStyle; label: string }[] = [
   { id: "button", label: "Button only" },
   { id: "whole", label: "Whole nudge" },
+  // App's language first, then all of it turns into the offered one.
+  { id: "flip", label: "Whole flip" },
+];
+/** The flip's buttons: Switch + ✕, or Yes + No. `?buttons=yesno`. */
+const buttonsFromUrl = (): ButtonStyle => (q().get("buttons") === "yesno" ? "yesno" : "switch");
+const BUTTONS: { id: ButtonStyle; label: string }[] = [
+  { id: "switch", label: "Switch · ✕" },
+  { id: "yesno", label: "Yes · No" },
 ];
 /** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
 const sheetFromUrl = (): SheetType => (q().get("sheet") === "compact" ? "sheet1" : "sheet2");
@@ -54,6 +62,7 @@ export default function App() {
   const [flow, setFlow] = useState<Flow>(flowFromUrl);
   const [sheet, setSheet] = useState<SheetType>(sheetFromUrl);
   const [text, setText] = useState<TextStyle>(textFromUrl);
+  const [buttons, setButtons] = useState<ButtonStyle>(buttonsFromUrl);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -67,19 +76,22 @@ export default function App() {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
     if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "compact");
-    if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", "whole");
+    if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", text);
+    if (buttons === "switch" || text !== "flip") u.searchParams.delete("buttons"); else u.searchParams.set("buttons", buttons);
     history.replaceState(null, "", u);
-  }, [flow, sheet, text]);
+  }, [flow, sheet, text, buttons]);
 
   const only = solo();
   if (only) {
     return (
       <TextStyleContext.Provider value={text}>
+      <ButtonStyleContext.Provider value={buttons}>
         <ConfirmContext.Provider value={confirmFromUrl()}>
           <div className="solo">
             <SoloDevice start={only.start} store={only.store} beat={only.beat} live={only.live} />
           </div>
         </ConfirmContext.Provider>
+      </ButtonStyleContext.Provider>
       </TextStyleContext.Provider>
     );
   }
@@ -110,11 +122,21 @@ export default function App() {
             </button>
           ))}
         </div>
+        {text === "flip" ? (
+          <div className="seg" role="radiogroup" aria-label="Nudge buttons">
+            {BUTTONS.map((x) => (
+              <button key={x.id} className="seg-opt" role="radio" aria-checked={buttons === x.id} data-on={buttons === x.id ? "" : undefined} onClick={() => setButtons(x.id)}>
+                {x.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </header>
 
       {/* Keyed on the flow, so switching flows starts both phones afresh. */}
       <TextStyleContext.Provider value={text}>
-      <div className="stage v5-stage" key={`${flow}-${text}`}>
+      <ButtonStyleContext.Provider value={buttons}>
+      <div className="stage v5-stage" key={`${flow}-${text}-${text === "flip" ? buttons : ""}`}>
         <ConfirmContext.Provider value={sheet}>
           <Lane start={f.start} store={f.store} tag={f.ids[0]} name="With sheet" />
         </ConfirmContext.Provider>
@@ -122,6 +144,7 @@ export default function App() {
           <Lane start={f.start} store={f.store} tag={f.ids[1]} name="Instant + undo" />
         </ConfirmContext.Provider>
       </div>
+      </ButtonStyleContext.Provider>
       </TextStyleContext.Provider>
     </div>
   );
