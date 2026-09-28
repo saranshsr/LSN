@@ -6,6 +6,7 @@ import { ProductCard } from "../components/ProductCard";
 import { TooltipHeader } from "../components/TooltipHeader";
 import { ArHeader } from "../components/ArHeader";
 import { useRubberBand } from "../motion/useRubberBand";
+import { FloatingPill } from "../components/FloatingPill";
 import { SPR, at, rise } from "../motion/springs";
 import { SCROLL, scrollDecision, shouldSettleToTop, type StateId } from "../motion/nudge-core";
 import type { Locale } from "../data/copy";
@@ -171,14 +172,14 @@ export function ResultsScreen({ locale, offer, query, store = "noon", nudge: sta
 
       {/* Sort · Filter · share, floating over the results just above the nav
           (678:91534 / 678:91550), in every flow. It arrives with the grid. */}
-      <motion.img
+      <motion.div
         className="v5-pill"
-        src={`/img/v5/pill-${locale}.png`}
-        alt=""
-        style={locale === "ar" ? { left: 59, top: 679, width: 258.5 } : { left: 86, top: 680, width: 204 }}
+        style={locale === "ar" ? { left: 59, top: 679 } : { left: 86, top: 680 }}
         initial={arrive ? { opacity: 0, y: 12, scale: 0.96 } : false}
         animate={loading ? { opacity: 0, y: 12, scale: 0.96 } : { opacity: 1, y: 0, scale: 1, transition: { ...SPR.move, delay: at(0.16) } }}
-      />
+      >
+        <FloatingPill locale={locale} />
+      </motion.div>
       {/* super mall's results run on noon's own M-Bottomnav (678:85950). */}
       <BottomNav locale={locale} />
     </div>

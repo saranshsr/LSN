@@ -1356,6 +1356,23 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* The floating Sort · Filter · share pill (678:91534, 678:91550), over the
    results just above the nav. */
 .v5-pill { position: absolute; z-index: 2; height: 36px; pointer-events: none; }
+/* 678:91534 / 678:91550 — the #3866DF bar, 36 tall, fully round; a white
+   share disc with a 1.5 inside ring. Labels 16 Bold, white, lh 22.4. */
+.fpill { display: flex; gap: 8px; height: 36px; }
+.fpill-bar {
+  display: flex; align-items: center; height: 36px; border-radius: 18px; background: #3866df;
+  padding: 0 8px 0 12px; gap: 8px;
+}
+.fpill-item { display: flex; align-items: center; gap: 4px; font: 700 16px/22.4px Noontree, "Noto Sans Arabic", sans-serif; color: #fff; white-space: nowrap; }
+.fpill-sep { width: 1px; height: 20px; background: rgba(255, 255, 255, 0.2); flex: none; }
+.fpill-share {
+  width: 36px; height: 36px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px #3866df;
+  display: grid; place-items: center; flex: none;
+}
+.fpill-share svg { transform: translate(-1px, 0); }
+.fpill--ar .fpill-bar { padding: 0 16px; gap: 12px; width: 214.2px; }
+.fpill--ar .fpill-item { gap: 6px; }
+.fpill--ar .fpill-sep { background: #fff; }
 
 /* "Whole nudge": the two sentences share one cell, the first on top until it
    turns. Each keeps its own direction and hugs the glyph side. */
