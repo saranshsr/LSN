@@ -32,10 +32,10 @@ const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [strin
 
 const q = () => new URLSearchParams(location.search);
 const flowFromUrl = (): Flow => { const f = q().get("flow"); return f === "ar" || f === "sm" || f === "smar" ? f : "en"; };
-const textFromUrl = (): TextStyle => (q().get("text") === "button" ? "button" : "whole");
+const textFromUrl = (): TextStyle => (q().get("text") === "whole" ? "whole" : "button");
 const TEXTS: { id: TextStyle; label: string }[] = [
-  { id: "whole", label: "Whole nudge" },
   { id: "button", label: "Button only" },
+  { id: "whole", label: "Whole nudge" },
 ];
 /** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
 const sheetFromUrl = (): SheetType => (q().get("sheet") === "compact" ? "sheet1" : "sheet2");
@@ -69,7 +69,7 @@ export default function App() {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
     if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "compact");
-    if (text === "whole") u.searchParams.delete("text"); else u.searchParams.set("text", "button");
+    if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", "whole");
     history.replaceState(null, "", u);
   }, [flow, sheet, text]);
 

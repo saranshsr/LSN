@@ -54,9 +54,9 @@ export const SM_SUGGESTIONS = [
  *            turns into the app's; the button stays in the offered one
  *   button — the sentence is in the app's language; only the button turns
  *            (CTA · transition 535:4693)
- * `?text=button` opens a link on the second. */
+ * "button" is the default (28 Sep); `?text=whole` opens a link on the other. */
 export type TextStyle = "whole" | "button";
-export const TextStyleContext = createContext<TextStyle>("whole");
+export const TextStyleContext = createContext<TextStyle>("button");
 export const useTextStyle = () => useContext(TextStyleContext);
 
 const other = (l: Locale): Locale => (l === "en" ? "ar" : "en");
