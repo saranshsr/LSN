@@ -15,6 +15,8 @@ import { BarFlight, chromeOf, readLook, type Flight } from "./BarFlight";
 import { SPR, at } from "../motion/springs";
 import { initialFor, stateFor, type FlowState, type Screen } from "../flow/flow";
 
+/** "Keep English": the nudge leaves once the sheet is mostly down. */
+const KEEP_MS = 260;
 /** How long the skeleton holds — one shimmer sweep plus its rest, then a beat. */
 const SKELETON_MS = 1600;
 /** How long the sheet gets to recede before the app starts to fade away. */
@@ -136,6 +138,13 @@ export function Device({ state, setState, pinned }: DeviceProps) {
     else patch({ sheetOpen: true });
   };
 
+  /** "Keep English": the sheet closes, then — a beat later, as the scrim lifts,
+   *  so it is seen going — the nudge leaves too. Outside the sheet only closes it. */
+  const keep = () => {
+    patch({ sheetOpen: false });
+    setTimeout(() => setState((s) => ({ ...s, nudge: "dismissed" })), KEEP_MS);
+  };
+
   const screen = (() => {
     switch (state.screen) {
       case "home":
@@ -220,6 +229,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
           open={state.sheetOpen}
           locale={state.locale}
           onCancel={() => patch({ sheetOpen: false })}
+          onKeep={keep}
           onConfirm={() => {
             patch({ sheetOpen: false });
             setTimeout(() => relaunch(otherLocale(state.locale)), HANDOFF_MS);
@@ -231,6 +241,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
           variant="sheet1"
           locale={state.locale}
           onCancel={() => patch({ sheetOpen: false })}
+          onKeep={keep}
           onConfirm={() => {
             patch({ sheetOpen: false });
             setTimeout(() => relaunch(otherLocale(state.locale)), HANDOFF_MS);

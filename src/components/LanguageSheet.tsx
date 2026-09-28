@@ -38,9 +38,11 @@ const ROLES: Record<string, [number, number]> = {
 const L = (a: number, b: number, t: number) => a + (b - a) * t;
 const C = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
-type Props = { open: boolean; locale: Locale; onCancel: () => void; onConfirm: () => void };
+/** onCancel: the scrim — the sheet closes, the nudge stays. onKeep: "Keep
+ *  English" — the sheet closes and the nudge goes too (28 Sep). */
+type Props = { open: boolean; locale: Locale; onCancel: () => void; onKeep: () => void; onConfirm: () => void };
 
-export function LanguageSheet({ open, locale, onCancel, onConfirm }: Props) {
+export function LanguageSheet({ open, locale, onCancel, onKeep, onConfirm }: Props) {
   const c = SHEET[locale].two;
   const root = useRef<HTMLDivElement>(null);
   // The engine lives for the component's life; open/close drive it.
@@ -90,11 +92,11 @@ export function LanguageSheet({ open, locale, onCancel, onConfirm }: Props) {
               <h2 dir="auto">{c.title}</h2>
               <p dir="auto">{c.body}</p>
             </div>
-            {/* Not now + the switch (660:21128 · Actions): 12 apart, the switch in
+            {/* Keep English + the switch (660:21128 · Actions): 12 apart, the switch in
                 the offered language. The device's dir puts it on the right in
                 the English app and on the left in the Arabic one. */}
             <div className="ls-actions">
-              <button className="ls-btn ls-btn--quiet" onClick={onCancel}>{c.cancel}</button>
+              <button className="ls-btn ls-btn--quiet" onClick={onKeep}>{c.cancel}</button>
               <button className="ls-btn ls-btn--go" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
             </div>
           </div>

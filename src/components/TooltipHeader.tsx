@@ -5,7 +5,7 @@ import { SearchBar } from "./SearchBar";
 import { Icon } from "../icons/Icon";
 import { spring } from "../motion/springs";
 import type { Locale } from "../data/copy";
-import { NUDGE, useButtonStyle, useTextStyle, type Store } from "../flow/v5";
+import { NUDGE, useTextStyle, type Store } from "../flow/v5";
 import { HOLD_MS as SENTENCE_HOLD, useTextMorph } from "../motion/useTextMorph";
 import { useChannels } from "../motion/useChannels";
 import { useCtaMorph } from "../motion/useCtaMorph";
@@ -68,8 +68,6 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
   // The flip: the whole banner starts in the app's language and turns into the
   // offered one — sentence and button on the same frame.
   const flip = style === "flip";
-  const buttons = useButtonStyle();
-  const yesno = flip && buttons === "yesno";
   const tm = useTextMorph(whole || flip);
   const geoRef = useRef(geo); geoRef.current = geo;
   const copy = NUDGE[locale];
@@ -81,9 +79,7 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
   const mirror = locale === "ar";
   const mirrorRef = useRef(mirror); mirrorRef.current = mirror;
   const ch = useChannels<K>({ ...STATES.P, ic: 0 } as Record<K, number>);
-  const cta = useCtaMorph(locale, !whole, flip ? { hold: SENTENCE_HOLD, ...(yesno ? { ...copy.yes, gloss: copy.yes.to.text, pillClass: "btn-neutral btn-neutral--bold btn-neutral--pair" } : {}) } : {});
-  // Yes / No: the No pill turns with it (it stands where the ✕ was).
-  const ctaNo = useCtaMorph(locale, yesno, { ...copy.no, gloss: copy.no.to.text, hold: SENTENCE_HOLD, pillClass: "btn-neutral btn-neutral--quiet btn-neutral--text btn-neutral--pair" });
+  const cta = useCtaMorph(locale, !whole, flip ? { hold: SENTENCE_HOLD } : {});
   const cur = useRef<StateId>("P");
   const entering = useRef(false);
   const sheenStart = useRef<number | null>(null);
@@ -111,7 +107,7 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     const from = cur.current;
     if (from === to) return;
     cur.current = to;
-    if (from === "A") { cta.leave(); ctaNo.leave(); tm.leave(); }
+    if (from === "A") { cta.leave(); tm.leave(); }
     traceStart("tooltip", from, to);
     ch.cancel();
     const spr = (k: K) => (entering.current && ENTRANCE[k]) || SPRINGS[k];
@@ -119,7 +115,7 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     // The shimmer belongs to the first arrival only; scrolling back replays the
     // entrance without it.
     sheenStart.current = entering.current && !ch.reduced && !arrived.current ? performance.now() + (SHEEN.at * R / 0.52) * 1000 : null;
-    if (entering.current) { arrived.current = true; cta.arrive(); ctaNo.arrive(); }
+    if (entering.current) { arrived.current = true; cta.arrive(); }
 
     // Scrolled away (B, not ✕) — both stores: the banner doesn't recede — it
     // tucks back into the bar. The copy clears, then the card itself slides up and
@@ -263,7 +259,6 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     // "English → Arabic": settled once every channel is at rest in A.
     const resting = cur.current === "A" && (Object.values(ch.values) as { isAnimating(): boolean }[]).every((c) => !c.isAnimating());
     cta.frame(r.nn.current, resting);
-    if (yesno) ctaNo.frame(r.sb.current, resting);
     tm.frame(r.label.current, cur.current === "A" && (Object.values(ch.values) as { isAnimating(): boolean }[]).every((c) => !c.isAnimating()));
 
     // Slow, soft band of light across the card's background — arrival only, once.
@@ -329,21 +324,13 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
                 </p>
                 <div className="nudge-actions">
                   {/* [تبديل][✕], by position like the attached nudge: nn is the lead. */}
-                  <button className={yesno ? "btn-neutral btn-neutral--bold btn-neutral--pair" : "btn-neutral btn-neutral--bold"} ref={r.nn} onClick={() => { cta.tap(); onSwitch(); }} lang={cta.lang} aria-label={cta.gloss}>
+                  <button className="btn-neutral btn-neutral--bold" ref={r.nn} onClick={() => { cta.tap(); onSwitch(); }} lang={cta.lang} aria-label={cta.gloss}>
                     <span className="pill-surface" />{cta.label}
                   </button>
-                  {yesno ? (
-                    // No, where the ✕ was: a quiet pill that turns with Yes.
-                    <button className="btn-neutral btn-neutral--quiet btn-neutral--text btn-neutral--pair" ref={r.sb} onClick={() => { ctaNo.tap(); onDismiss(); }} lang={ctaNo.lang} aria-label={ctaNo.gloss}>
-                      <span className="pill-surface" />{ctaNo.label}
-                    </button>
-                  ) : (
-                    <button className="btn-neutral btn-neutral--quiet btn-neutral--icon" ref={r.sb} onClick={onDismiss} aria-label={copy.close}>
-                      <span className="pill-surface" /><span className="pill-label"><Icon name="system-cross" size={20} /></span>
-                    </button>
-                  )}
+                  <button className="btn-neutral btn-neutral--quiet btn-neutral--icon" ref={r.sb} onClick={onDismiss} aria-label={copy.close}>
+                    <span className="pill-surface" /><span className="pill-label"><Icon name="system-cross" size={20} /></span>
+                  </button>
                   {cta.measurers}
-                  {yesno ? ctaNo.measurers : null}
                 </div>
               </div>
             </div>

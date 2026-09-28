@@ -61,12 +61,6 @@ export type TextStyle = "whole" | "button" | "flip";
 export const TextStyleContext = createContext<TextStyle>("button");
 export const useTextStyle = () => useContext(TextStyleContext);
 
-/** The flip's two buttons (28 Sep): today's Switch + ✕, or Yes (primary) + No.
- *  `?buttons=yesno`. Only the flip offers the choice. */
-export type ButtonStyle = "switch" | "yesno";
-export const ButtonStyleContext = createContext<ButtonStyle>("switch");
-export const useButtonStyle = () => useContext(ButtonStyleContext);
-
 const other = (l: Locale): Locale => (l === "en" ? "ar" : "en");
 export { other as otherLocale };
 
@@ -90,9 +84,6 @@ export const NUDGE: Record<Locale, {
   from: { text: string; lang: Locale };
   to: { text: string; lang: Locale };
   close: string;
-  /** Yes / No (the flip's second button style): app's language → offered. */
-  yes: { from: { text: string; lang: Locale }; to: { text: string; lang: Locale } };
-  no: { from: { text: string; lang: Locale }; to: { text: string; lang: Locale } };
 }> = {
   en: {
     // U+200E keeps the "?" after the Arabic word in the left-to-right line.
@@ -103,8 +94,6 @@ export const NUDGE: Record<Locale, {
     from: { text: "Switch", lang: "en" },
     to: { text: "تبديل", lang: "ar" }, // "Switch"
     close: "Dismiss",
-    yes: { from: { text: "Yes", lang: "en" }, to: { text: "نعم", lang: "ar" } },
-    no: { from: { text: "No", lang: "en" }, to: { text: "لا", lang: "ar" } },
   },
   ar: {
     // "Switch app to English?" — U+200F keeps the "؟" after the Latin word.
@@ -114,8 +103,6 @@ export const NUDGE: Record<Locale, {
     from: { text: "تبديل", lang: "ar" }, // "Switch"
     to: { text: "Switch", lang: "en" },
     close: "إغلاق", // "Close"
-    yes: { from: { text: "نعم", lang: "ar" }, to: { text: "Yes", lang: "en" } }, // "Yes"
-    no: { from: { text: "لا", lang: "ar" }, to: { text: "No", lang: "en" } }, // "No"
   },
 };
 
@@ -129,13 +116,15 @@ export const SHEET: Record<Locale, {
     one: {
       title: "You’re switching the app to العربية‎",
       body: "Head to Accounts and choose Language to change it anytime.",
-      cancel: "Not now",
+      // Not "Not now": it would clash with "change it anytime" (28 Sep).
+      cancel: "Keep English",
       action: "تبديل", actionLang: "ar", // "Switch"
     },
     two: {
       title: "You’re switching to العربية‎",
       body: "Head to Accounts and choose Language to change it anytime.",
-      cancel: "Not now",
+      // Not "Not now": it would clash with "change it anytime" (28 Sep).
+      cancel: "Keep English",
       action: "تبديل", actionLang: "ar",
     },
   },
@@ -145,13 +134,13 @@ export const SHEET: Record<Locale, {
       title: "أنت تنقل التطبيق إلى English",
       // "Head to Account and choose Language to change it anytime."
       body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.",
-      cancel: "ليس الآن", // "Not now"
+      cancel: "الإبقاء على العربية", // "Keep Arabic"
       action: "Switch", actionLang: "en",
     },
     two: {
       title: "أنت تنتقل إلى English", // "You're switching to English"
       body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Head to Account and choose Language to change it anytime."
-      cancel: "ليس الآن", // "Not now"
+      cancel: "الإبقاء على العربية", // "Keep Arabic"
       action: "Switch", actionLang: "en",
     },
   },

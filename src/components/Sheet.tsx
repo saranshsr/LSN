@@ -24,7 +24,10 @@ type Props = {
   variant: "sheet1";
   /** The app's language — the sheet is written in it and offers the other. */
   locale: Locale;
+  /** The scrim or a drag down: the sheet closes, the nudge stays. */
   onCancel: () => void;
+  /** "Keep English": the sheet closes and the nudge goes too (28 Sep). */
+  onKeep: () => void;
   onConfirm: () => void;
 };
 
@@ -37,7 +40,7 @@ type Props = {
  * gesture keeps its velocity instead of restarting from zero. Option 2 has no
  * Not now: the scrim and the drag are its way out.
  */
-export function ConfirmSheet({ open, variant, locale, onCancel, onConfirm }: Props) {
+export function ConfirmSheet({ open, variant, locale, onCancel, onKeep, onConfirm }: Props) {
   const release = useRef(0);
   const onDragEnd = (_: unknown, info: PanInfo) => {
     release.current = info.velocity.y;
@@ -70,7 +73,7 @@ export function ConfirmSheet({ open, variant, locale, onCancel, onConfirm }: Pro
             transition={enter}
           >
             <div className="sheet-grabber" />
-            <SheetOne locale={locale} onCancel={onCancel} onConfirm={onConfirm} />
+            <SheetOne locale={locale} onKeep={onKeep} onConfirm={onConfirm} />
             <div className="sheet-homebar v5-homebar" />
           </motion.div>
         </>
@@ -181,7 +184,7 @@ function WayBack() {
   );
 }
 
-function SheetOne({ locale, onCancel, onConfirm }: { locale: Locale; onCancel: () => void; onConfirm: () => void }) {
+function SheetOne({ locale, onKeep, onConfirm }: { locale: Locale; onKeep: () => void; onConfirm: () => void }) {
   const c = SHEET[locale].one;
   return (
     <div className="v5-sheet s1" role="dialog" aria-label={c.title}>
@@ -193,7 +196,7 @@ function SheetOne({ locale, onCancel, onConfirm }: { locale: Locale; onCancel: (
         <WayBack />
       </div>
       <div className="s1-actions">
-        <button className="v5-btn v5-btn--quiet" onClick={onCancel}>{c.cancel}</button>
+        <button className="v5-btn v5-btn--quiet" onClick={onKeep}>{c.cancel}</button>
         <button className="v5-btn v5-btn--go" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
       </div>
     </div>

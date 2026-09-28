@@ -56,23 +56,17 @@ type Stage = "wait" | "hold" | "morph" | "done" | "spent";
  * Below, `en` is the word the pill STARTS with and `ar` the one it ends on;
  * the names are kept from the English → Arabic original, whose maths this is.
  */
-type Word = { text: string; lang: Locale };
 type Opts = {
-  /** Other words to turn between (the flip's Yes / No). */
-  from?: Word; to?: Word; gloss?: string;
   /** Reading time before the turn — the flip holds as long as its sentence
    *  (useTextMorph), so the sentence and the button turn on the same frame. */
   hold?: number;
-  /** The pill's classes, for the hidden copies that measure it. */
-  pillClass?: string;
 };
 
 export function useCtaMorph(locale: Locale, enabled = true, opts: Opts = {}) {
   const n = NUDGE[locale];
-  const from = opts.from ?? n.from, to = opts.to ?? n.to;
+  const from = n.from, to = n.to;
   const hold = opts.hold ?? HOLD_MS;
-  const pillClass = opts.pillClass ?? "btn-neutral btn-neutral--bold";
-  const action = { text: to.text, lang: to.lang, gloss: opts.gloss ?? n.gloss };
+  const action = { text: to.text, lang: to.lang, gloss: n.gloss };
   // Off in "Whole nudge": there the button reads the offered language throughout.
   const active = enabled;
   const words = { en: from.text, ar: to.text };
@@ -217,8 +211,8 @@ export function useCtaMorph(locale: Locale, enabled = true, opts: Opts = {}) {
   );
   const measurers = measuring ? (
     <>
-      <span className={`${pillClass} pill-measure`} ref={measEn} lang={langs.en} aria-hidden="true">{words.en}</span>
-      <span className={`${pillClass} pill-measure`} ref={measAr} lang={langs.ar} aria-hidden="true">{words.ar}</span>
+      <span className="btn-neutral btn-neutral--bold pill-measure" ref={measEn} lang={langs.en} aria-hidden="true">{words.en}</span>
+      <span className="btn-neutral btn-neutral--bold pill-measure" ref={measAr} lang={langs.ar} aria-hidden="true">{words.ar}</span>
     </>
   ) : null;
 
