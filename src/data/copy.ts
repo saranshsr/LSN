@@ -123,8 +123,9 @@ export const chrome: Record<Locale, Chrome> = {
     addressLabel: "Home",
     address: "BDA Complex, 100 Feet Rd, 3rd Block, Kora…",
     chips: ["Filter", "Sort", "Deals", "Brand", "Formal Abayas", "Ramadan", "Sports"],
-    nav: ["Home", "Categories", "Deals", "Profile", "Cart"],
-    homeNav: ["Home", "Categories", "Deals", "Account", "Cart"],
+    // "Accounts", as the sheets say "Go to Accounts" (28 Sep; was "Profile").
+    nav: ["Home", "Categories", "Deals", "Accounts", "Cart"],
+    homeNav: ["Home", "Categories", "Deals", "Accounts", "Cart"],
     card: {
       bestSeller: "Best Seller",
       megaDeal: "Mega Deal",

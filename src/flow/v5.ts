@@ -121,14 +121,14 @@ export const SHEET: Record<Locale, {
   en: {
     one: {
       title: "You’re switching the app to العربية‎",
-      body: "Head to Accounts and choose Language to change it anytime.",
+      body: "Go to Accounts and choose Language to change it anytime.",
       // Not "Not now": it would clash with "change it anytime" (28 Sep).
       cancel: "Keep English",
       action: "تبديل", actionLang: "ar", // "Switch"
     },
     two: {
       title: "You’re switching to العربية‎",
-      body: "Head to Accounts and choose Language to change it anytime.",
+      body: "Go to Accounts and choose Language to change it anytime.",
       // Not "Not now": it would clash with "change it anytime" (28 Sep).
       cancel: "Keep English",
       action: "تبديل", actionLang: "ar",
@@ -138,14 +138,14 @@ export const SHEET: Record<Locale, {
     one: {
       // "You're switching the app to English"
       title: "أنت تنقل التطبيق إلى English",
-      // "Head to Account and choose Language to change it anytime."
-      body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.",
+      // "Go to Account and choose Language to change it anytime."
+      body: "اذهب إلى الحساب واختر اللغة لتغييرها في أي وقت.",
       cancel: "الإبقاء على العربية", // "Keep Arabic"
       action: "Switch", actionLang: "en",
     },
     two: {
       title: "أنت تنتقل إلى English", // "You're switching to English"
-      body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Head to Account and choose Language to change it anytime."
+      body: "اذهب إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Go to Account and choose Language to change it anytime."
       cancel: "الإبقاء على العربية", // "Keep Arabic"
       action: "Switch", actionLang: "en",
     },
