@@ -81,9 +81,9 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
   const mirror = locale === "ar";
   const mirrorRef = useRef(mirror); mirrorRef.current = mirror;
   const ch = useChannels<K>({ ...STATES.P, ic: 0 } as Record<K, number>);
-  const cta = useCtaMorph(locale, !whole, flip ? { hold: SENTENCE_HOLD, ...(yesno ? { ...copy.yes, gloss: copy.yes.to.text } : {}) } : {});
+  const cta = useCtaMorph(locale, !whole, flip ? { hold: SENTENCE_HOLD, ...(yesno ? { ...copy.yes, gloss: copy.yes.to.text, pillClass: "btn-neutral btn-neutral--bold btn-neutral--pair" } : {}) } : {});
   // Yes / No: the No pill turns with it (it stands where the ✕ was).
-  const ctaNo = useCtaMorph(locale, yesno, { ...copy.no, gloss: copy.no.to.text, hold: SENTENCE_HOLD, pillClass: "btn-neutral btn-neutral--quiet btn-neutral--text" });
+  const ctaNo = useCtaMorph(locale, yesno, { ...copy.no, gloss: copy.no.to.text, hold: SENTENCE_HOLD, pillClass: "btn-neutral btn-neutral--quiet btn-neutral--text btn-neutral--pair" });
   const cur = useRef<StateId>("P");
   const entering = useRef(false);
   const sheenStart = useRef<number | null>(null);
@@ -329,12 +329,12 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
                 </p>
                 <div className="nudge-actions">
                   {/* [تبديل][✕], by position like the attached nudge: nn is the lead. */}
-                  <button className="btn-neutral btn-neutral--bold" ref={r.nn} onClick={() => { cta.tap(); onSwitch(); }} lang={cta.lang} aria-label={cta.gloss}>
+                  <button className={yesno ? "btn-neutral btn-neutral--bold btn-neutral--pair" : "btn-neutral btn-neutral--bold"} ref={r.nn} onClick={() => { cta.tap(); onSwitch(); }} lang={cta.lang} aria-label={cta.gloss}>
                     <span className="pill-surface" />{cta.label}
                   </button>
                   {yesno ? (
                     // No, where the ✕ was: a quiet pill that turns with Yes.
-                    <button className="btn-neutral btn-neutral--quiet btn-neutral--text" ref={r.sb} onClick={() => { ctaNo.tap(); onDismiss(); }} lang={ctaNo.lang} aria-label={ctaNo.gloss}>
+                    <button className="btn-neutral btn-neutral--quiet btn-neutral--text btn-neutral--pair" ref={r.sb} onClick={() => { ctaNo.tap(); onDismiss(); }} lang={ctaNo.lang} aria-label={ctaNo.gloss}>
                       <span className="pill-surface" />{ctaNo.label}
                     </button>
                   ) : (
