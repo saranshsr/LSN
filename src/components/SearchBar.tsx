@@ -15,7 +15,7 @@ type Props = {
   height?: 44 | 48;
   onClick?: () => void;
   /** The home bars of iteration 5 draw their own chrome (see app.css). */
-  variant?: "home" | "sm";
+  variant?: "home" | "sm" | "search" | "smres";
 };
 
 const hasArabic = (s: string) => /[؀-ۿ]/.test(s);

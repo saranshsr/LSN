@@ -4,7 +4,8 @@ import type { Locale } from "../data/copy";
 import { SHEET } from "../flow/v5";
 
 /**
- * "You're switching to العربية" (Figma 520:108779, "Bs option 2") — the sheet
+ * "You're switching the app to العربية" (Figma 660:21128, "Sheet · option 2";
+ * first handed off as 520:108779) — the sheet
  * that shows the way back before the switch. Ported line for line from the
  * approved handoff (language-sheet-motion-handoff: SPEC.md, motion-tokens.json,
  * reference/prototype.html):
@@ -84,7 +85,13 @@ export function LanguageSheet({ open, locale, onCancel, onConfirm }: Props) {
               <h2 dir="auto">{c.title}</h2>
               <p dir="auto">{c.body}</p>
             </div>
-            <button className="ls-cta" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
+            {/* Not now + the switch (660:21128 · Actions): 12 apart, the switch in
+                the offered language. The device's dir puts it on the right in
+                the English app and on the left in the Arabic one. */}
+            <div className="ls-actions">
+              <button className="ls-btn ls-btn--quiet" onClick={onCancel}>{c.cancel}</button>
+              <button className="ls-btn ls-btn--go" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
+            </div>
           </div>
           <div className="ls-card" data-k="card" dir="ltr">
             <div className="ls-li">
@@ -217,7 +224,8 @@ function makeEngine(root: HTMLElement) {
   function lift() {
     spring("fade", 0, 0.7, (v) => { el.rowhl.style.opacity = String(C(v)); }, { delay: 0.02 });
     later(0.12, () => {
-      const from = { x: 53.12 + 7.83, y: 151, w: 229.1, h: 35.5 }, to = { x: 20.27, y: 139, w: 311.37, h: 55 };
+      // 660:21128: the phone and the card sit 10 lower than in 520:108779.
+      const from = { x: 53.12 + 7.83, y: 161, w: 229.1, h: 35.5 }, to = { x: 20.27, y: 149, w: 311.37, h: 55 };
       const s0 = from.w / to.w, fy = from.y + from.h / 2 - to.h * s0 / 2;
       spring("fade", 0, 1, (v) => { el.frost.style.opacity = String(C(v)); });
       spring("lift", 0, 1, (v) => {
@@ -234,7 +242,7 @@ function makeEngine(root: HTMLElement) {
     later(delay, () => {
       const to = seg < 0.5 ? 1 : 0, n = to ? el.ar : el.en;
       const segEl = n.offsetParent as HTMLElement;
-      const cx = 20.27 + 10.645 + segEl.offsetLeft + n.offsetLeft + n.offsetWidth / 2, cy = 139 + 27.5;
+      const cx = 20.27 + 10.645 + segEl.offsetLeft + n.offsetLeft + n.offsetWidth / 2, cy = 149 + 27.5;
       touch(cx, cy);
       flip(to);
       loop(1.55);

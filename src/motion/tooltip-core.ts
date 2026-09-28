@@ -66,17 +66,17 @@ export const SHEEN = { at: 0.95, dur: 2.4 };
 export const R = BASE.response;
 
 /** Per-frame geometry from the channel values — exactly what the header draws. */
-export function tooltipGeom(v: Record<K, number>, entering: boolean) {
+export function tooltipGeom(v: Record<K, number>, entering: boolean, cardTop = CARD.y) {
   const g = v.geo;
   const uX = lerp(NOTCH.tip - NOTCH.w / 2, 0, v.uf), uW = Math.max(1, lerp(NOTCH.w, W, v.uf)), uH = Math.max(1, lerp(3, CARD.h, v.drop));
-  const cardX = lerp(uX, v.sx, g), cardY = lerp(CARD.y, 0, g), cardW = Math.max(1, lerp(uW, v.swd, g)), cardH = Math.max(1, lerp(uH, SH, g));
+  const cardX = lerp(uX, v.sx, g), cardY = lerp(cardTop, 0, g), cardW = Math.max(1, lerp(uW, v.swd, g)), cardH = Math.max(1, lerp(uH, SH, g));
   const cardR = Math.min(lerp(CARD.r, 12, clamp(g)), cardH / 2, cardW / 2);
   const grow = v.ic <= 0 ? 0 : v.ic >= 1 ? 1 : ease(clamp((v.ic - 0.8) / 0.2));
   const [tx, ty] = pathAt(v.ic);
   const pop = lerp(entering ? 0.4 : 0.55, 1, v.iv);
   const ts = lerp(TILE.A.s, TILE.B.s, grow) * pop, tr = lerp(TILE.A.r, TILE.B.r, grow) * pop;
   const iv = clamp(v.iv), dm = clamp(v.dm);
-  const stageH = lerp(STAGE_A, STAGE_B, v.lay);
+  const stageH = lerp(cardTop + CARD.h, STAGE_B, v.lay);
   const tileBottom = (ty + ts / 2) * clamp(v.iv * 1.5) * (1 - dm);
   return { g, cardX, cardY, cardW, cardH, cardR, grow, tx, ty, pop, ts, tr, iv, dm, stageH, tileBottom };
 }

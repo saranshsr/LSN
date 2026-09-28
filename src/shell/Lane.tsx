@@ -10,7 +10,7 @@ import { ConfirmSheet } from "../components/Sheet";
 import { LanguageSheet } from "../components/LanguageSheet";
 import { UndoToast } from "../components/UndoToast";
 import { chrome, dirFor, type Locale } from "../data/copy";
-import { useConfirm, otherLocale, SM_SUGGESTIONS, type Store } from "../flow/v5";
+import { useConfirm, otherLocale, type Store } from "../flow/v5";
 import { BarFlight, chromeOf, readLook, type Flight } from "./BarFlight";
 import { SPR, at } from "../motion/springs";
 import { initialFor, stateFor, type FlowState, type Screen } from "../flow/flow";
@@ -102,8 +102,12 @@ export function Device({ state, setState, pinned }: DeviceProps) {
       id: ++flightId.current,
       from: readLook(chromeOf(a), dev),
       to: () => { const live = bar(state.screen); return live ? readLook(chromeOf(live), dev) : null; },
-      src: leg === "submit" ? { query: state.query, caret: true } : { placeholder: state.store === "sm" ? "Search for “Maybelline 1014”" : chrome[state.locale].searchPlaceholder },
-      dst: leg === "open" ? { query: "", caret: true, typing: true } : { query: state.query, back: true },
+      src: leg === "submit"
+        ? { query: state.query, caret: true, back: true, variant: "search" as const }
+        : { placeholder: state.store === "sm" ? "Search for “Maybelline 1014”" : chrome[state.locale].searchPlaceholder, variant: state.store === "sm" ? "sm" as const : "home" as const },
+      dst: leg === "open"
+        ? { query: "", caret: true, typing: true, back: true, variant: "search" as const }
+        : { query: state.query, back: true, variant: state.store === "sm" ? "smres" as const : undefined },
     });
   }, [state.screen, state.locale, state.query, reduced]);
 
@@ -135,11 +139,16 @@ export function Device({ state, setState, pinned }: DeviceProps) {
   const screen = (() => {
     switch (state.screen) {
       case "home":
-        return <ImageHome locale={state.locale} store={state.store} onSearch={() => patch({ screen: state.locale === "ar" ? "results" : "search" })} />;
+        return <ImageHome locale={state.locale} store={state.store} onSearch={() => patch({ screen: "search" })} />;
       case "search":
-        return state.store === "sm"
-          ? <SearchScreen query={state.query} suggestions={SM_SUGGESTIONS} onSubmit={() => patch({ screen: "results" })} />
-          : <SearchScreen onSubmit={() => patch({ screen: "results" })} />;
+        return (
+          <SearchScreen
+            query={state.query}
+            locale={state.locale}
+            image={state.locale === "ar" ? "/img/v5/search-ar.jpg" : "/img/v5/search-en.jpg"}
+            onSubmit={() => patch({ screen: "results" })}
+          />
+        );
       case "transition":
         return (
           <TransitionScreen
@@ -197,8 +206,9 @@ export function Device({ state, setState, pinned }: DeviceProps) {
       <UndoToast
         show={state.screen === "results" && !!state.toast}
         to={state.locale}
-        top={state.store === "sm" ? 648 : 659}
-        navTop={state.store === "sm" ? 716 : 727}
+        // Centred on the Sort · Filter pill (y679–715) so it covers it whole.
+        top={671}
+        navTop={727}
         onTimeout={() => { if (!pinned) patch({ toast: false }); }}
         onUndo={() => relaunch(otherLocale(state.locale), { undoing: true })}
       />

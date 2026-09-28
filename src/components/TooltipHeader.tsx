@@ -5,7 +5,8 @@ import { SearchBar } from "./SearchBar";
 import { Icon } from "../icons/Icon";
 import { spring } from "../motion/springs";
 import type { Locale } from "../data/copy";
-import { NUDGE } from "../flow/v5";
+import { NUDGE, useTextStyle, type Store } from "../flow/v5";
+import { useTextMorph } from "../motion/useTextMorph";
 import { useChannels } from "../motion/useChannels";
 import { useCtaMorph } from "../motion/useCtaMorph";
 import { traceFrame, traceStart } from "../motion/trace";
@@ -41,26 +42,27 @@ type Props = {
    *  (Nudge banner 528:26664, Language=Arabic app). */
   locale: Locale;
   query: string;
-  /** super mall's results header is a title bar, not a search field
-   *  (SM1 · 03, 603:42880): back · title · search, the banner under it. */
-  bar?: "search" | "title";
+  /** noon, or super mall — whose results bar sits a little higher, with
+   *  the banner 11 pt under it (SM1 · 03, 678:85896). */
+  store?: Store;
   onSwitch: () => void; onDismiss: () => void; onHeight?: (h: number) => void;
 };
 
-/** Where each header's bar sits, and what it leaves below: noon's search field
- *  (A1 · 03) and super mall's title bar (SM1 · 03: caret y100, card y106–154,
- *  chips at 154 open and at 94 shut). */
+/** Where each header's bar sits, and what it leaves below.
+ *  noon (A1 · 03): the stage at 50.57, 14 of white under it either way.
+ *  super mall (SM1 · 03 / 04): the bar at y49, the card at y104, the chips at
+ *  157 open and 105 shut. The stage sits 3 higher and the bar 3 lower inside
+ *  it, so the card lands on 104 without changing the shared motion core. */
 const GEO = {
-  search: { stageY: STAGE_Y, padOpen: PAD_B, padShut: PAD_B },
-  // 12 / 14 of white below the bar, like noon's 14, so content scrolls away
-  // under a clean edge instead of butting against the banner. The chips'
-  // own 12pt top padding tucks under it (.sm-chips), so at rest the filters
-  // sit exactly where Figma draws them: 154 open, 94 shut.
-  title: { stageY: 48, padOpen: 12, padShut: 14 },
+  noon: { stageY: STAGE_Y, searchTop: 0, padOpen: PAD_B, padShut: PAD_B },
+  sm: { stageY: 46, searchTop: 3, padOpen: 5, padShut: 15 },
 };
 
-export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, onDismiss, onHeight }: Props) {
-  const geo = GEO[bar];
+export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, onDismiss, onHeight }: Props) {
+  const geo = GEO[store];
+  const bar = store === "sm" ? "title" : "search";
+  const whole = useTextStyle() === "whole";
+  const tm = useTextMorph(whole);
   const geoRef = useRef(geo); geoRef.current = geo;
   const copy = NUDGE[locale];
   const WORDS = copy.words;
@@ -71,7 +73,7 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
   const mirror = locale === "ar";
   const mirrorRef = useRef(mirror); mirrorRef.current = mirror;
   const ch = useChannels<K>({ ...STATES.P, ic: 0 } as Record<K, number>);
-  const cta = useCtaMorph(locale);
+  const cta = useCtaMorph(locale, !whole);
   const cur = useRef<StateId>("P");
   const entering = useRef(false);
   const sheenStart = useRef<number | null>(null);
@@ -96,7 +98,7 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
     const from = cur.current;
     if (from === to) return;
     cur.current = to;
-    if (from === "A") cta.leave();
+    if (from === "A") { cta.leave(); tm.leave(); }
     traceStart("tooltip", from, to);
     ch.cancel();
     const spr = (k: K) => (entering.current && ENTRANCE[k]) || SPRINGS[k];
@@ -192,7 +194,10 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
       el.style.opacity = String(o); el.style.filter = blur > 0.05 ? `blur(${blur}px)` : "none";
       el.style.transform = `translate(${tx2}px, ${ty2}px) scale(${sx}, ${sy})`;
     };
-    const words = r.label.current ? [...r.label.current.querySelectorAll<HTMLElement>(".tt-word")] : [];
+    // "Whole nudge" forms its first sentence, in the offered language; after the
+    // turn (or in "Button only") the entrance forms the app's sentence.
+    const layer = tm.showingFirst() ? ".tt-lbl--first" : ".tt-lbl--app";
+    const words = r.label.current ? [...r.label.current.querySelectorAll<HTMLElement>(`${layer} .tt-word`)] : [];
     if (entering.current) {
       look(r.label.current, 1, 0, 0, 0);
       const e = 1 - v.txt, step = 0.13, span = 1 - step * (words.length - 1);
@@ -222,6 +227,7 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
 
     // "English → Arabic": settled once every channel is at rest in A.
     cta.frame(r.nn.current, cur.current === "A" && (Object.values(ch.values) as { isAnimating(): boolean }[]).every((c) => !c.isAnimating()));
+    tm.frame(r.label.current, cur.current === "A" && (Object.values(ch.values) as { isAnimating(): boolean }[]).every((c) => !c.isAnimating()));
 
     // Slow, soft band of light across the card's background — arrival only, once.
     const t0 = sheenStart.current;
@@ -268,10 +274,19 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
               <img className="tt-watermark" ref={r.wm} src="/img/v5/watermark.svg" alt="" width={160} height={48} />
               <div className="tt-row">
                 <span className="tt-tile-slot" />
-                <p className="nudge-label tt-label" ref={r.label}>
-                  {WORDS.map((w, i) => (
-                    <span key={i} className={w.strong ? "tt-word tt-word--strong" : "tt-word"}>{w.text}{i < WORDS.length - 1 ? " " : ""}</span>
-                  ))}
+                <p className="nudge-label tt-label" ref={r.label} aria-label={copy.gloss}>
+                  {whole ? (
+                    <span className="tt-lbl tt-lbl--first" dir={copy.offered.dir} lang={locale === "en" ? "ar" : "en"}>
+                      {copy.offered.words.map((w, i, a) => (
+                        <span key={i} className={w.strong ? "tt-word tt-word--strong" : "tt-word"}>{w.text}{i < a.length - 1 ? " " : ""}</span>
+                      ))}
+                    </span>
+                  ) : null}
+                  <span className="tt-lbl tt-lbl--app">
+                    {WORDS.map((w, i) => (
+                      <span key={i} className={w.strong ? "tt-word tt-word--strong" : "tt-word"}>{w.text}{i < WORDS.length - 1 ? " " : ""}</span>
+                    ))}
+                  </span>
                 </p>
                 <div className="nudge-actions">
                   {/* [تبديل][✕], by position like the attached nudge: nn is the lead. */}
@@ -291,30 +306,10 @@ export function TooltipHeader({ state, locale, query, bar = "search", onSwitch, 
             {tileIcon}
           </button>
         </div>
-        <div className="tt-search" ref={r.search}>
-          {bar === "title" ? <TitleBar title={query} /> : <SearchBar query={query} back />}
+        <div className="tt-search" ref={r.search} style={{ top: geo.searchTop }}>
+          <SearchBar query={query} back variant={store === "sm" ? "smres" : undefined} />
         </div>
       </div>
     </header>
-  );
-}
-
-/**
- * super mall's results title bar (603:42880): a 24 back arrow, the query as a
- * 16/22 SemiBold title, and a 24 search icon at the far end. Laid out by the
- * device's dir, so the Arabic app mirrors it.
- */
-function TitleBar({ title }: { title: string }) {
-  return (
-    <div className="titlebar">
-      <svg className="titlebar-back" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M14.7496 18C14.7496 18.1925 14.6759 18.3838 14.5296 18.53C14.2371 18.8225 13.7621 18.8225 13.4684 18.53L7.4684 12.53C7.1759 12.2375 7.1759 11.7625 7.4684 11.4688L13.4684 5.46877C13.7609 5.17627 14.2359 5.17627 14.5296 5.46877C14.8221 5.76127 14.8221 6.23627 14.5296 6.53001L9.05965 12L14.5296 17.47C14.6759 17.6163 14.7496 17.8088 14.7496 18Z" fill="#0E0E0E" />
-      </svg>
-      <span className="titlebar-title">{title}</span>
-      <svg className="titlebar-search" width={24} height={24} viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M10.5 3.25C6.5025 3.25 3.25 6.5025 3.25 10.5C3.25 14.4975 6.5025 17.75 10.5 17.75C14.4975 17.75 17.75 14.4975 17.75 10.5C17.75 6.5025 14.4975 3.25 10.5 3.25ZM10.5 16.25C7.33 16.25 4.75 13.67 4.75 10.5C4.75 7.33 7.33 4.75 10.5 4.75C13.67 4.75 16.25 7.33 16.25 10.5C16.25 13.67 13.67 16.25 10.5 16.25Z" fill="#0E0E0E" />
-        <path d="M20.53 19.47L17.53 16.47C17.2375 16.1775 16.7625 16.1775 16.4687 16.47C16.1762 16.7625 16.1762 17.2375 16.4687 17.5312L19.4688 20.5312C19.615 20.6775 19.8075 20.7513 19.9987 20.7513C20.19 20.7513 20.3825 20.6775 20.5287 20.5312C20.8212 20.2388 20.8212 19.7638 20.5287 19.47H20.53Z" fill="#0E0E0E" />
-      </svg>
-    </div>
   );
 }

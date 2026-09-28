@@ -18,7 +18,7 @@ import { SPR, at, spring } from "../motion/springs";
  *  banner lands; sinks back behind it without one. */
 const RISE = spring(0.95, 0.76);
 
-export function UndoToast({ show, to, top = 659, navTop = 727, onUndo, onTimeout }: { show: boolean; to: Locale; top?: number; navTop?: number; onUndo: () => void; onTimeout: () => void }) {
+export function UndoToast({ show, to, top = 671, navTop = 727, onUndo, onTimeout }: { show: boolean; to: Locale; top?: number; navTop?: number; onUndo: () => void; onTimeout: () => void }) {
   // Fully below the clip edge — i.e. behind the nav — before it rises.
   const hidden = navTop - top + 6;
   const reduced = useReducedMotion();

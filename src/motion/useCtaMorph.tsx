@@ -56,10 +56,11 @@ type Stage = "wait" | "hold" | "morph" | "done" | "spent";
  * Below, `en` is the word the pill STARTS with and `ar` the one it ends on;
  * the names are kept from the English → Arabic original, whose maths this is.
  */
-export function useCtaMorph(locale: Locale) {
+export function useCtaMorph(locale: Locale, enabled = true) {
   const n = NUDGE[locale];
   const action = { text: n.to.text, lang: n.to.lang, gloss: n.gloss };
-  const active = true;
+  // Off in "Whole nudge": there the button reads the offered language throughout.
+  const active = enabled;
   const words = { en: n.from.text, ar: n.to.text };
   const langs = { en: n.from.lang, ar: n.to.lang };
   // The attached header reads these from a frame loop created once, so every

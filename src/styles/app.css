@@ -572,6 +572,11 @@ ul { margin: 0; padding: 0; list-style: none; }
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
   font-size: 22px; font-weight: 400;
 }
+.keyboard-letters { flex: 1; display: flex; gap: 6.5px; }
+/* The key under the typing finger: iOS greys it for the length of a tap. */
+.key { transition: background-color 120ms ease; }
+.key[data-down] { background: #c5cad1; transition-duration: 0ms; }
+.key--space { font-size: 14px; color: #3c434d; }
 .key--mod { flex: 0 0 42px; background: #adb3bd; font-size: 18px; }
 .key--abc { flex: 0 0 86px; background: #adb3bd; font-size: 15px; }
 .key--dot { flex: 0 0 34px; }
@@ -1104,10 +1109,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* Option 1: 351 × 212, white, radius 16. Header 20/21/4/16, gap 12: the copy
    (188) and the 114 way-back card. Actions 12 all round, gap 12. */
 .s1 { background: #fff; border-radius: 16px; box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12); }
-.s1-head { display: flex; gap: 12px; padding-block: 20px 4px; padding-inline: 16px 21px; }
-.s1-copy { width: 188px; display: flex; flex-direction: column; gap: 8px; }
+/* Header content (530:27774): 20 · 21 · 4 · 16, physical in both languages —
+   the Arabic frame keeps 16 on the left and 21 on the right. */
+.s1-head { display: flex; gap: 16px; padding: 20px 21px 4px 16px; }
+.s1-copy { width: 198px; flex: none; display: flex; flex-direction: column; gap: 8px; }
 .s1-title { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.15px; color: #101628; }
-.s1-body { margin: 0; font-size: 13px; line-height: 20px; font-weight: 400; color: #475067; }
+.s1-body { margin: 0; font-size: 13px; line-height: 20px; font-weight: 400; letter-spacing: -0.1px; color: #475067; }
+[dir="rtl"] .s1-body, [dir="rtl"] .s1-title { letter-spacing: 0; }
 .s1-path {
   position: relative; flex: none; width: 114px; height: 114px; border-radius: 24px;
   background: linear-gradient(180deg, #e1efff 0%, #eff7ff 100%); color: #0f7eff;
@@ -1124,7 +1132,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .s1-stop--profile { left: 8.1px; top: 8.1px; }
 .s1-stop--lang { left: 69.2px; top: 69.2px; }
 .s1-chev { position: absolute; }
-.s1-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+.s1-actions { display: grid; grid-template-columns: 158.5px 156.5px; gap: 12px; padding: 12px; }
 
 .v5-btn {
   height: 48px; border-radius: 10px; font-size: 14px; line-height: 20px; font-weight: 600;
@@ -1151,7 +1159,7 @@ ul { margin: 0; padding: 0; list-style: none; }
    check leads, the message follows, Undo sits at the far end. */
 .v5-toast-clip { position: absolute; left: 0; top: 0; width: 375px; overflow: hidden; pointer-events: none; z-index: 3; }
 .v5-toast {
-  position: absolute; left: 12px; top: 659px; pointer-events: auto; width: 351px; height: 52px;
+  position: absolute; left: 12px; top: 671px; pointer-events: auto; width: 351px; height: 52px;
   display: flex; align-items: center; gap: 8px; padding-inline: 12px 10px;
   background: #fff; border: 1px solid #f2f3f7; border-radius: 14px;
   box-shadow: 0 12px 28px rgba(11, 12, 14, 0.1);
@@ -1215,8 +1223,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 .tt-search:has(.titlebar) { border: 0; }
 
 /* ── super mall results content: Figma's render of the chips and the grid ─ */
-.sm-chips { display: block; width: 375px; height: 56px; margin-top: -12px; }
-.sm-grid { display: block; width: 351px; height: 916px; margin: 6px 12px 0; }
+.sm-chips { display: block; width: 375px; height: 56px; }
+/* SM1 · 03 (678:85900): the grid 7 under the chips, full width, 907 tall. */
+.sm-grid { display: block; width: 375px; height: 907px; margin: 7px 0 0; }
 .sm-nav { position: absolute; left: 0; bottom: 0; z-index: 2; width: 375px; height: 96px; }
 
 /* ── v5 shell: one bar, two phones ───────────────────────────────────────── */
@@ -1237,15 +1246,15 @@ ul { margin: 0; padding: 0; list-style: none; }
 .ls-root { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 .ls-root[data-open] { pointer-events: auto; }
 .ls-scrim { position: absolute; inset: 0; background: #000; opacity: 0; }
-.ls-dock { position: absolute; left: 0; top: 251px; width: 375px; height: 561px; will-change: transform; transform: translateY(100%); }
+.ls-dock { position: absolute; left: 0; top: 291px; width: 375px; height: 521px; will-change: transform; transform: translateY(100%); }
 .ls-grab { position: absolute; left: 0; top: 0; width: 375px; height: 28px; }
 .ls-grab::before { content: ""; position: absolute; left: 169.5px; top: 12px; width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.6); }
 .ls-popup {
-  position: absolute; left: 12px; top: 28px; width: 351px; height: 500px; border-radius: 20px; overflow: hidden; isolation: isolate;
+  position: absolute; left: 12px; top: 28px; width: 351px; height: 460px; border-radius: 20px; overflow: hidden; isolation: isolate;
   background: linear-gradient(180deg, #ebf4ff 0%, #bddbff 100%);
 }
 .ls-popup::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px #f9fafb; pointer-events: none; z-index: 20; }
-.ls-home { position: absolute; left: 0; top: 528px; width: 375px; height: 33px; }
+.ls-home { position: absolute; left: 0; top: 488px; width: 375px; height: 33px; }
 .ls-home::before { content: ""; position: absolute; left: 120.5px; top: 20px; width: 134px; height: 5px; border-radius: 3px; background: #fff; }
 .ls-ell { position: absolute; left: 6px; width: 339px; height: 339px; border-radius: 50%; filter: blur(5px); }
 .ls-ell--a { top: 22px; opacity: .8; background: radial-gradient(closest-side, #85bdff, rgba(51,146,255,0)); }
@@ -1253,10 +1262,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 .ls-layer { position: absolute; display: block; pointer-events: none; }
 .ls-pattern {
   left: 0; top: 0; width: 351px; height: 379px; --r: 0px;
-  -webkit-mask-image: radial-gradient(circle at 176px 166px, #000 var(--r), transparent calc(var(--r) + 140px));
-          mask-image: radial-gradient(circle at 176px 166px, #000 var(--r), transparent calc(var(--r) + 140px));
+  -webkit-mask-image: radial-gradient(circle at 176px 176px, #000 var(--r), transparent calc(var(--r) + 140px));
+          mask-image: radial-gradient(circle at 176px 176px, #000 var(--r), transparent calc(var(--r) + 140px));
 }
-.ls-phone-wrap { position: absolute; inset: 0; transform-origin: 175px 300px; will-change: transform, opacity; }
+.ls-phone-wrap { position: absolute; left: 0; top: 10px; width: 351px; height: 500px; transform-origin: 175px 300px; will-change: transform, opacity; }
 .ls-screen { position: absolute; left: 53.12px; top: 42px; width: 244.77px; height: 530px; overflow: hidden; background: #f2f3f7; border-radius: 36px 36px 0 0; }
 .ls-scroll { position: absolute; left: 7.83px; top: 0; width: 236.93px; height: 458px; will-change: transform; }
 .ls-scroll img { display: block; width: 236.93px; height: 458px; }
@@ -1268,11 +1277,21 @@ ul { margin: 0; padding: 0; list-style: none; }
   position: absolute; left: 54px; top: 80px; width: 242px; height: 315px; background: rgba(255,255,255,.5);
   -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); opacity: 0; pointer-events: none;
 }
-.ls-fade { left: 0; top: 171px; width: 351px; height: 329px; }
-.ls-copy { position: absolute; left: 0; top: 324px; width: 351px; padding: 0 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; z-index: 5; }
+.ls-fade { left: 0; top: 147px; width: 351px; height: 329px; }
+/* 660:21128 · Address container: anchored 20 above the popup's bottom, the
+   copy 315 wide, 24 above the actions. */
+.ls-copy { position: absolute; left: 0; bottom: 20px; width: 351px; padding: 0 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; z-index: 5; }
 .ls-t { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.ls-copy h2 { margin: 0; font: 800 26px/42px Figtree, "Noto Sans Arabic", sans-serif; letter-spacing: -.2px; color: #1d2539; white-space: nowrap; }
-.ls-copy p { margin: 0; width: 283px; font: 400 15px/21px Noontree, "Noto Sans Arabic", sans-serif; letter-spacing: -.3px; color: #666d85; }
+.ls-copy h2 { margin: 0; width: 315px; font: 800 26px/42px Figtree, "Noto Sans Arabic", sans-serif; letter-spacing: -.2px; color: #1d2539; }
+.ls-copy p { margin: 0; width: 315px; font: 400 15px/21px Noontree, "Noto Sans Arabic", sans-serif; letter-spacing: -.3px; color: #666d85; }
+.ls-actions { display: flex; gap: 12px; width: 311px; }
+.ls-btn {
+  height: 48px; border-radius: 10px; font: 600 14px/20px Noontree, "Noto Sans Arabic", sans-serif; letter-spacing: 0; cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.ls-btn:active { transform: scale(.97); }
+.ls-btn--quiet { width: 150.5px; flex: none; background: #fff; border: 1px solid #eaecf0; color: #1d2539; }
+.ls-btn--go { width: 148.5px; flex: none; background: #0f7eff; border: 0; color: #fff; }
 [dir="rtl"] .ls-copy p { letter-spacing: 0; }
 .ls-cta {
   width: 311px; height: 48px; border: 0; border-radius: 10px; background: #101628; color: #fff; cursor: pointer;
@@ -1281,7 +1300,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .ls-cta:active { transform: scale(.97); }
 .ls-card {
-  position: absolute; left: 20.27px; top: 139px; width: 311.37px; height: 55px; padding: 10.645px; border-radius: 16px; background: #fff;
+  position: absolute; left: 20.27px; top: 149px; width: 311.37px; height: 55px; padding: 10.645px; border-radius: 16px; background: #fff;
   box-shadow: 0 0 12px rgba(0,0,0,.06); transform-origin: 0 0; opacity: 0; z-index: 6; will-change: transform, opacity;
 }
 .ls-li { width: 290.08px; height: 33.71px; display: flex; align-items: center; justify-content: space-between; background: #fff; }
@@ -1313,3 +1332,33 @@ ul { margin: 0; padding: 0; list-style: none; }
 .ls-h { flex: none; padding: 0; }
 .ls-h--en { width: 52.74px; }
 .ls-h--ar { width: 53.74px; font-size: 12.419px; line-height: 12.419px; letter-spacing: -.1242px; }
+
+/* ── Iteration 5 · search (687:88297, 695:23775) ─────────────────────────
+   The bar: 335 × 48 at x20 y54, radius 12, a #F2F3F7 hairline, the 24 chevron
+   at 8 from its edge, the query at x56. No divider, no camera. */
+.v5-search { cursor: pointer; }
+.v5-search-head { position: absolute; left: 20px; right: 20px; top: 54px; z-index: 2; }
+.searchbar--search { border-color: #f2f3f7; border-radius: 12px; padding: 0 12px 0 8px; gap: 4px; box-shadow: 0 1px 3px rgba(14, 14, 14, 0.07); }
+.searchbar--search .searchbar-icon--back { width: 24px; height: 24px; color: #0e0e0e; }
+.searchbar--search .searchbar-divider, .searchbar--search .searchbar-icon:not(.searchbar-icon--back) { display: none; }
+.searchbar--search .searchbar-input { font-size: 14px; line-height: 20px; font-weight: 500; color: #1d2539; }
+.v5-search-page { position: absolute; inset: 0; }
+/* The keyboard docks over the page's foot, y516–812, as on the device. */
+.v5-search-kbd { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; }
+.v5-search-band { position: absolute; left: 0; width: 375px; background-size: 375px 812px; background-repeat: no-repeat; }
+
+/* ── super mall results bar (678:85953): 343 × 44 at x16 y49, radius 12, a
+   #404553 @15% hairline, an 18 back arrow, the query in Figtree Medium 14. */
+.searchbar--smres { border-color: rgba(64, 69, 83, 0.15); border-radius: 12px; padding: 0 12px 0 8px; margin: 0 4px; }
+.searchbar--smres .searchbar-icon--back { width: 18px; height: 18px; }
+.searchbar--smres .searchbar-input { font-family: Figtree, Noontree, sans-serif; font-size: 14px; line-height: 18px; font-weight: 500; color: #343d54; }
+
+/* The floating Sort · Filter · share pill (678:91534, 678:91550), over the
+   results just above the nav. */
+.v5-pill { position: absolute; z-index: 2; height: 36px; pointer-events: none; }
+
+/* "Whole nudge": the two sentences share one cell, the first on top until it
+   turns. Each keeps its own direction and hugs the glyph side. */
+.tt-label { display: grid; }
+.tt-lbl { grid-area: 1 / 1; white-space: pre; justify-self: start; }
+.tt-lbl--first { font-family: Noontree, "Noto Sans Arabic", sans-serif; }

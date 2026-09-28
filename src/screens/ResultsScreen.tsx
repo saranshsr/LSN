@@ -116,7 +116,7 @@ export function ResultsScreen({ locale, offer, query, store = "noon", nudge: sta
       <StatusBar />
 
       {sm ? (
-        <TooltipHeader state={offer ? nudgeState : "C"} locale={locale} query={query} bar="title" onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
+        <TooltipHeader state={offer ? nudgeState : "C"} locale={locale} query={query} store="sm" onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       ) : offer ? (
         <TooltipHeader state={nudgeState} locale={locale} query={query} onSwitch={onSwitch} onDismiss={onDismiss} onHeight={setInset} />
       ) : locale === "ar" ? (
@@ -129,7 +129,7 @@ export function ResultsScreen({ locale, offer, query, store = "noon", nudge: sta
         className="scroll"
         ref={scroller}
         onScroll={onScroll}
-        style={{ paddingTop: locale === "ar" && !offer && !sm ? 106.57 : inset, paddingBottom: sm ? 110 : undefined }}
+        style={{ paddingTop: locale === "ar" && !offer && !sm ? 106.57 : inset, paddingBottom: 130 }}
       >
         {/* Arriving from search, the content arrives into its placeholders as
             two groups — chips, then the grid. Arriving from the relaunch
@@ -169,7 +169,18 @@ export function ResultsScreen({ locale, offer, query, store = "noon", nudge: sta
         </div>
       </div>
 
-      {sm ? <img className="sm-nav" src={`/img/v5/sm-nav-${locale}.png`} alt="" /> : <BottomNav locale={locale} />}
+      {/* Sort · Filter · share, floating over the results just above the nav
+          (678:91534 / 678:91550), in every flow. It arrives with the grid. */}
+      <motion.img
+        className="v5-pill"
+        src={`/img/v5/pill-${locale}.png`}
+        alt=""
+        style={locale === "ar" ? { left: 59, top: 679, width: 258.5 } : { left: 86, top: 680, width: 204 }}
+        initial={arrive ? { opacity: 0, y: 12, scale: 0.96 } : false}
+        animate={loading ? { opacity: 0, y: 12, scale: 0.96 } : { opacity: 1, y: 0, scale: 1, transition: { ...SPR.move, delay: at(0.16) } }}
+      />
+      {/* super mall's results run on noon's own M-Bottomnav (678:85950). */}
+      <BottomNav locale={locale} />
     </div>
   );
 }

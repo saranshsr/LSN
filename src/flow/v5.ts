@@ -37,7 +37,8 @@ export type Store = "noon" | "sm";
  *  Arabic app in English (B1 · 02, 539:26596). super mall searches makeup. */
 export const QUERY_FOR: Record<Store, Record<Locale, string>> = {
   noon: { en: "عبايات", ar: "abaya" }, // "abayas"
-  sm: { en: "مكياج", ar: "مكياج" }, // "makeup"
+  // super mall's Arabic app has no frames; it searched in English, like noon's.
+  sm: { en: "مكياج", ar: "makeup" }, // "makeup"
 };
 
 /** SM1 · 02 Search, typing (603:26596). */
@@ -47,6 +48,16 @@ export const SM_SUGGESTIONS = [
   { text: "أحمر شفاه", gloss: "lipstick" },
   { text: "كريم أساس", gloss: "foundation" },
 ];
+
+/** How the banner teaches the offered language (the 28 Sep review):
+ *   whole  — it arrives entirely in the offered language, then the sentence
+ *            turns into the app's; the button stays in the offered one
+ *   button — the sentence is in the app's language; only the button turns
+ *            (CTA · transition 535:4693)
+ * `?text=button` opens a link on the second. */
+export type TextStyle = "whole" | "button";
+export const TextStyleContext = createContext<TextStyle>("whole");
+export const useTextStyle = () => useContext(TextStyleContext);
 
 const other = (l: Locale): Locale => (l === "en" ? "ar" : "en");
 export { other as otherLocale };
@@ -64,6 +75,9 @@ type Word = { text: string; strong?: boolean };
  */
 export const NUDGE: Record<Locale, {
   words: Word[];
+  /** The same question in the offered language — the first thing "whole"
+   *  shows. Written as the other app's banner writes it (528:26664). */
+  offered: { words: Word[]; dir: "ltr" | "rtl" };
   gloss: string;
   from: { text: string; lang: Locale };
   to: { text: string; lang: Locale };
@@ -72,6 +86,8 @@ export const NUDGE: Record<Locale, {
   en: {
     // U+200E keeps the "?" after the Arabic word in the left-to-right line.
     words: [{ text: "Switch" }, { text: "app" }, { text: "to" }, { text: "العربية‎?", strong: true }],
+    // "Switch app to Arabic?"
+    offered: { dir: "rtl", words: [{ text: "تحويل" }, { text: "التطبيق" }, { text: "إلى" }, { text: "العربية؟", strong: true }] },
     gloss: "Switch app to Arabic?",
     from: { text: "Switch", lang: "en" },
     to: { text: "تبديل", lang: "ar" }, // "Switch"
@@ -80,6 +96,7 @@ export const NUDGE: Record<Locale, {
   ar: {
     // "Switch app to English?" — U+200F keeps the "؟" after the Latin word.
     words: [{ text: "تحويل" }, { text: "التطبيق" }, { text: "إلى" }, { text: "English‏؟", strong: true }],
+    offered: { dir: "ltr", words: [{ text: "Switch" }, { text: "app" }, { text: "to" }, { text: "English?", strong: true }] },
     gloss: "Switch app to English?",
     from: { text: "تبديل", lang: "ar" }, // "Switch"
     to: { text: "Switch", lang: "en" },
@@ -91,18 +108,19 @@ export const NUDGE: Record<Locale, {
  *  OFFERED language, the rest in the app's. */
 export const SHEET: Record<Locale, {
   one: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
-  two: { title: string; body: string; action: string; actionLang: Locale };
+  two: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
 }> = {
   en: {
     one: {
       title: "You’re switching the app to العربية‎",
-      body: "Tap the profile icon, go to Account and select Language to switch anytime.",
+      body: "Head to Accounts and choose Language to change it anytime.",
       cancel: "Not now",
       action: "تبديل", actionLang: "ar", // "Switch"
     },
     two: {
       title: "You’re switching to العربية‎",
-      body: "Tap the profile icon, go to Account then to Language to switch anytime.",
+      body: "Head to Accounts and choose Language to change it anytime.",
+      cancel: "Not now",
       action: "تبديل", actionLang: "ar",
     },
   },
@@ -110,15 +128,15 @@ export const SHEET: Record<Locale, {
     one: {
       // "You're switching the app to English"
       title: "أنت تنقل التطبيق إلى English",
-      // "Tap the profile icon, then Account, and choose Language to switch anytime."
-      body: "اضغط على أيقونة الملف الشخصي، ثم الحساب، واختر اللغة للتبديل في أي وقت.",
+      // "Head to Account and choose Language to change it anytime."
+      body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.",
       cancel: "ليس الآن", // "Not now"
       action: "Switch", actionLang: "en",
     },
     two: {
       title: "أنت تنتقل إلى English", // "You're switching to English"
-      // "Tap the profile icon, then Account, then Language to switch anytime."
-      body: "اضغط على أيقونة الملف الشخصي، ثم الحساب، ثم اللغة للتبديل في أي وقت.",
+      body: "توجّه إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Head to Account and choose Language to change it anytime."
+      cancel: "ليس الآن", // "Not now"
       action: "Switch", actionLang: "en",
     },
   },

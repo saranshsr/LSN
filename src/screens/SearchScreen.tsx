@@ -1,80 +1,78 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
 import { StatusBar } from "../components/chrome";
 import { SearchBar } from "../components/SearchBar";
 import { Keyboard } from "../components/Keyboard";
-import { Icon } from "../icons/Icon";
-import { SPR, rise, stagger } from "../motion/springs";
-
-/**
- * Submitting: the bar is the thread the user follows. The Device lifts it into
- * a flight layer (shell/BarFlight) and flies it from the overlay into wherever
- * this lane's results header puts its bar — measured, since the inline and
- * tooltip headers differ — while the keyboard drops and the suggestions clear.
- * The results screen fades up underneath and takes the bar back on landing.
- */
-const clearList = { gone: { opacity: 0, y: -6, filter: "blur(3px)", transition: SPR.clear } };
-import { QUERY, SUGGESTIONS } from "../data/copy";
+import { SPR, stagger } from "../motion/springs";
+import type { Locale } from "../data/copy";
 
 /** Per character. Fast enough to read as typing, slow enough to watch. */
 const KEY_MS = 95;
-/** The overlay has to arrive and settle before anything is typed into it —
- *  the bar's `move` spring settles in ~500ms, so typing into a moving field
- *  would look wrong. */
+/** The overlay settles before anything is typed into it (the bar's flight
+ *  lands in ~500ms). */
 const START_MS = 520;
+/** How long a key stays lit under the typing finger. */
+const TAP_MS = 80;
 
 /**
- * Frame `2 · Search — Arabic query` (278:45836). The user has typed an Arabic
- * query on an English app — the mismatch that arms the whole flow.
+ * Search, iteration 5 (A · 02 687:88297, B · 01b 695:23775, SM · 02 687:88469):
+ * the pre-results page — recently searched, trending searches, the noon One
+ * banner, recently viewed categories — with the query in the bar.
  *
- * The query types itself out. That is a presentation affordance, not product
- * behaviour: it exists so the mismatch is something the room watches happen
- * rather than something already on screen when the slide appears. Suggestions
- * hold until the query lands, then stagger in, which is also the honest
- * ordering — they are a response to the query.
+ * The page is Figma's own render with its header taken out; the bar on top is
+ * live — the shared element Home's bar flies into (shell/BarFlight). The
+ * keyboard docks a beat after the overlay lands, the sections rise in behind
+ * it, and the query types itself in, as a presentation affordance, each key
+ * lighting as it goes — in Arabic for the Arabic query. Return searches (so
+ * does a tap on the page once the query is in); the keyboard drops as the bar
+ * flies on into the results header.
  */
-type Suggestion = { text: string; gloss: string };
+const page = { shown: { transition: stagger(0.06, 0.12) } };
+const band = {
+  hidden: { opacity: 0, y: 9, filter: "blur(4px)" },
+  shown: { opacity: 1, y: 0, filter: "blur(0px)", transition: SPR.rise },
+};
+/** The page's sections, in the render's own coordinates (y from the frame top). */
+const BANDS: [number, number][] = [[102, 300], [300, 440], [440, 515], [515, 812]];
 
-export function SearchScreen({ onSubmit, query = QUERY, suggestions = SUGGESTIONS }: { onSubmit: () => void; query?: string; suggestions?: Suggestion[] }) {
-  const QUERY_ = query;
+export function SearchScreen({ onSubmit, query, locale, image }: { onSubmit: () => void; query: string; locale: Locale; image: string }) {
   const [typed, setTyped] = useState(0);
-  const done = typed >= QUERY_.length;
+  const [down, setDown] = useState<string | null>(null);
+  const done = typed >= query.length;
+  const sent = useRef(false);
+  const submit = () => { if (sent.current) return; sent.current = true; onSubmit(); };
 
   useEffect(() => {
     let i = 0;
-    const tick = () => { i += 1; setTyped(i); };
+    let timer: ReturnType<typeof setTimeout>, lift: ReturnType<typeof setTimeout>;
     const start = setTimeout(function step() {
-      tick();
-      if (i < QUERY_.length) timer = setTimeout(step, KEY_MS);
+      setDown(query[i]); i += 1; setTyped(i);
+      clearTimeout(lift); lift = setTimeout(() => setDown(null), TAP_MS);
+      if (i < query.length) timer = setTimeout(step, KEY_MS);
     }, START_MS);
-    let timer: ReturnType<typeof setTimeout>;
-    return () => { clearTimeout(start); clearTimeout(timer); };
-  }, []);
+    return () => { clearTimeout(start); clearTimeout(timer); clearTimeout(lift); };
+  }, [query]);
 
   return (
-    <div className="screen search-screen">
+    <div className="screen search-screen v5-search" onClick={done ? submit : undefined}>
       <StatusBar />
-      <div className="search-head">
-        <SearchBar query={QUERY_.slice(0, typed)} caret height={48} typing={!done} />
+      <div className="v5-search-head" dir={locale === "ar" ? "rtl" : "ltr"}>
+        <SearchBar query={query.slice(0, typed)} caret back height={48} typing={!done} variant="search" />
       </div>
-      <div className="scroll">
-        {done ? (
-          // Suggestions answer the query, so they rise in only once it lands —
-          // one by one, like the nudge's words. On exit they clear together.
-          <motion.ul initial="hidden" animate="shown" exit="gone" variants={{ shown: { transition: stagger(0.05) }, ...clearList }}>
-            {suggestions.map((s) => (
-              <motion.li className="suggestion-item" key={s.text} variants={rise}>
-                <button className="suggestion" onClick={onSubmit} title={s.gloss}>
-                  <Icon name="system-search" size={24} />
-                  {s.text}
-                </button>
-              </motion.li>
-            ))}
-          </motion.ul>
-        ) : null}
+      <motion.div className="v5-search-page" initial="hidden" animate="shown" variants={page} dir="ltr">
+        {BANDS.map(([top, bottom]) => (
+          <motion.div
+            key={top}
+            className="v5-search-band"
+            variants={band}
+            style={{ top, height: bottom - top, backgroundImage: `url(${image})`, backgroundPosition: `0 ${-top}px` }}
+          />
+        ))}
+      </motion.div>
+      <div className="v5-search-kbd" onClick={(e) => e.stopPropagation()}>
+        <Keyboard layout={/[\u0600-\u06ff]/.test(query) ? "ar" : "en"} down={down} onReturn={done ? submit : () => {}} />
       </div>
-      <Keyboard onReturn={done ? onSubmit : () => {}} />
     </div>
   );
 }
