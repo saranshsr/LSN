@@ -17,9 +17,11 @@ import type { Locale } from "../data/copy";
  *   instant — no sheet: the switch happens, and an undo toast offers the way
  *             back for 4 s
  *
+ *   sheet3  — "Sheet · option 3" (805:26233): the language glyph, the title,
+ *             the two buttons and a one-line hint of the way back
  * `?confirm=sheet2` opens a link on one; keys 1 2 3 switch it live.
  */
-export type Confirm = "sheet1" | "sheet2" | "instant";
+export type Confirm = "sheet1" | "sheet2" | "sheet3" | "instant";
 
 export const ConfirmContext = createContext<Confirm>("sheet2");
 export const useConfirm = () => useContext(ConfirmContext);
@@ -27,7 +29,7 @@ export const useConfirm = () => useContext(ConfirmContext);
 export const confirmFromUrl = (): Confirm => {
   const c = new URLSearchParams(location.search).get("confirm");
   // The illustrated sheet (520:108779) is the primary one since 25 Sep.
-  return c === "sheet1" || c === "instant" ? c : "sheet2";
+  return c === "sheet1" || c === "sheet3" || c === "instant" ? c : "sheet2";
 };
 
 /** noon, or super mall (SM1 / SM2, 603:41789 · 603:45751). */
@@ -117,6 +119,9 @@ export const NUDGE: Record<Locale, {
 export const SHEET: Record<Locale, {
   one: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
   two: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
+  /** 805:26233: option 1's title and buttons, the way back as a hint whose
+   *  destination is set Bold. */
+  three: { title: string; hint: string; hintStrong: string; cancel: string; action: string; actionLang: Locale };
 }> = {
   en: {
     one: {
@@ -133,6 +138,12 @@ export const SHEET: Record<Locale, {
       cancel: "Keep English",
       action: "تبديل", actionLang: "ar",
     },
+    three: {
+      title: "You’re switching the app to العربية‎",
+      hint: "You can change it anytime from ", hintStrong: "Account → Language",
+      cancel: "Keep English",
+      action: "تبديل", actionLang: "ar", // "Switch"
+    },
   },
   ar: {
     one: {
@@ -146,6 +157,13 @@ export const SHEET: Record<Locale, {
     two: {
       title: "أنت تنتقل إلى English", // "You're switching to English"
       body: "اذهب إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Go to Account and choose Language to change it anytime."
+      cancel: "الإبقاء على العربية", // "Keep Arabic"
+      action: "Switch", actionLang: "en",
+    },
+    three: {
+      title: "أنت تنقل التطبيق إلى English", // "You're switching the app to English"
+      // "You can change it anytime from Account ← Language"
+      hint: "يمكنك تغييرها في أي وقت من ", hintStrong: "الحساب ← اللغة",
       cancel: "الإبقاء على العربية", // "Keep Arabic"
       action: "Switch", actionLang: "en",
     },

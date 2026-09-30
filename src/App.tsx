@@ -20,7 +20,7 @@ import { ConfirmContext, confirmFromUrl, TextStyleContext, type Store, type Text
  * `?solo=en&beat=sheet` parks one on a beat.
  */
 type Flow = "en" | "ar" | "sm";
-type SheetType = "sheet1" | "sheet2";
+type SheetType = "sheet1" | "sheet2" | "sheet3";
 
 const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [string, string] }[] = [
   { id: "en", label: "English → Arabic", start: "en", store: "noon", ids: ["A1", "A2"] },
@@ -38,10 +38,12 @@ const TEXTS: { id: TextStyle; label: string }[] = [
   { id: "flip", label: "Whole flip" },
 ];
 /** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
-const sheetFromUrl = (): SheetType => (q().get("sheet") === "compact" ? "sheet1" : "sheet2");
+const sheetFromUrl = (): SheetType => { const s = q().get("sheet"); return s === "compact" ? "sheet1" : s === "minimal" ? "sheet3" : "sheet2"; };
 const SHEETS: { id: SheetType; label: string }[] = [
   { id: "sheet2", label: "Illustrated sheet" },
   { id: "sheet1", label: "Compact sheet" },
+  // 805:26233: glyph, title, the two buttons, a one-line hint.
+  { id: "sheet3", label: "Minimal sheet" },
 ];
 
 function solo() {
@@ -61,6 +63,7 @@ export default function App() {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "1") setSheet("sheet2");
       if (e.key === "2") setSheet("sheet1");
+      if (e.key === "3") setSheet("sheet3");
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
@@ -68,7 +71,7 @@ export default function App() {
   useEffect(() => {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
-    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "compact");
+    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", sheet === "sheet1" ? "compact" : "minimal");
     if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", text);
     u.searchParams.delete("buttons");
     history.replaceState(null, "", u);

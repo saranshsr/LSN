@@ -1140,6 +1140,22 @@ ul { margin: 0; padding: 0; list-style: none; }
 .s1-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid #0f7eff; opacity: 0; pointer-events: none; }
 .s1-actions { display: grid; grid-template-columns: 158.5px 156.5px; gap: 12px; padding: 12px; }
 
+/* ── Sheet · option 3 (805:26233) ─────────────────────────────────────────
+   351 × 230: Header content 24 · 21 · 4 · 20, 12 apart — the 60 glyph box, the
+   title (310, 18/24 Bold, centred); Stacked actions 12 · 21 · 16 · 20, 8 apart
+   — the two buttons (158 + 12 + 158) and the hint (4 above, 12/18, the
+   destination Bold, an info-circle 4 before it). */
+.s3 { background: #fff; border-radius: 16px; box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12); }
+.s3-head { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 21px 4px 20px; }
+.s3-glyph { width: 60px; height: 60px; display: grid; place-items: center; background: #fff; }
+.s3-title { margin: 0; width: 310px; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.15px; color: #101628; text-align: center; }
+.s3-body { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 21px 16px 20px; }
+.s3-actions { display: grid; grid-template-columns: 158px 158px; gap: 12px; }
+.s3-hint { margin: 0; display: flex; align-items: center; gap: 4px; padding-top: 4px; font-size: 12px; line-height: 18px; letter-spacing: -0.1px; color: #666d85; }
+.s3-hint svg { flex: none; }
+.s3-hint b { font-weight: 700; }
+[dir="rtl"] .s3-title, [dir="rtl"] .s3-hint { letter-spacing: 0; }
+
 .v5-btn {
   height: 48px; border-radius: 10px; font-size: 14px; line-height: 20px; font-weight: 600;
   transition: transform 160ms var(--ease-out);

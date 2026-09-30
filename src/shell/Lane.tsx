@@ -235,10 +235,10 @@ export function Device({ state, setState, pinned }: DeviceProps) {
             setTimeout(() => relaunch(otherLocale(state.locale)), HANDOFF_MS);
           }}
         />
-      ) : confirm === "sheet1" ? (
+      ) : confirm === "sheet1" || confirm === "sheet3" ? (
         <ConfirmSheet
           open={state.sheetOpen}
-          variant="sheet1"
+          variant={confirm}
           locale={state.locale}
           onCancel={() => patch({ sheetOpen: false })}
           onKeep={keep}
