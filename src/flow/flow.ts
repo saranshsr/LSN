@@ -57,7 +57,7 @@ export function stepsFor(start: Locale, confirm: Confirm): { id: StepId; label: 
     { id: "home" as const, label: "Home" },
     ...(start === "en" ? [{ id: "search" as const, label: "Search" }] : []),
     { id: "nudge", label: "Nudge" },
-    ...(confirm === "instant" ? [] : [{ id: "sheet" as const, label: confirm === "sheet3" ? "Sheet · option 3" : "Sheet · option 2" }]),
+    ...(confirm === "instant" ? [] : [{ id: "sheet" as const, label: confirm === "sheet1" ? "Sheet · option 1" : confirm === "sheet3" ? "Sheet · option 3" : "Sheet · option 2" }]),
     { id: "splash", label: start === "en" ? "Hala → هلا" : "هلا → Hala" },
     { id: "loading", label: "Loading" },
     { id: "switched", label: `${to} results${confirm === "instant" ? " · toast" : ""}` },

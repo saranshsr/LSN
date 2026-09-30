@@ -1099,14 +1099,46 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: url("/img/v5/dot-texture.png") 0 0 / 351px 48px no-repeat;
 }
 
-/* ── Iteration 5 · sheets (805:26233, 530:28151) ──────────────────────────
+/* ── Iteration 5 · sheets (530:27774, 530:28151) ──────────────────────────
    Scrim #000 at 80%, the grabber and the home indicator white on it. */
 .v5-scrim { background: rgba(0, 0, 0, 0.8); }
 .sheet-grabber::after { background: rgba(255, 255, 255, 0.64); }
 .v5-homebar::after { background: #fff; }
-/* Home indicator (805:26233): 33 tall, the bar 20 down — y799, over the nav's own. */
+/* Home indicator (530:27774): 33 tall, the bar 20 down — y799, over the nav's own. */
 .sheet-homebar.v5-homebar { place-items: start center; padding-top: 20px; box-sizing: border-box; }
 .v5-sheet { position: relative; margin: 0 12px; overflow: hidden; }
+
+/* Option 1: 351 × 212, white, radius 16. Header 20/21/4/16, gap 12: the copy
+   (188) and the 114 way-back card. Actions 12 all round, gap 12. */
+.s1 { background: #fff; border-radius: 16px; box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12); }
+/* Header content (530:27774): 20 · 21 · 4 · 16, physical in both languages —
+   the Arabic frame keeps 16 on the left and 21 on the right. */
+.s1-head { display: flex; gap: 16px; padding: 20px 21px 4px 16px; }
+.s1-copy { width: 198px; flex: none; display: flex; flex-direction: column; gap: 8px; }
+.s1-title { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.15px; color: #101628; }
+.s1-body { margin: 0; font-size: 13px; line-height: 20px; font-weight: 400; letter-spacing: -0.1px; color: #475067; }
+[dir="rtl"] .s1-body, [dir="rtl"] .s1-title { letter-spacing: 0; }
+/* Drawn at the old 114 and zoomed to Figma's 100 × 100 (r 21.05), so every
+   stop and chevron lands on the frame's own coordinates. */
+.s1-path {
+  position: relative; flex: none; width: 114px; height: 114px; border-radius: 24px; zoom: 0.87719; color: #0f7eff;
+}
+.s1-path-in { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, #e1efff 0%, #eff7ff 100%); }
+/* The Arabic twin draws the path the other way: profile top-right, language
+   bottom-left, chevrons pointing down-left. */
+[dir="rtl"] .s1-path { transform: scaleX(-1); }
+[dir="rtl"] .s1-path .s1-stop svg { transform: scaleX(-1); }
+.s1-stop {
+  position: absolute; width: 36.6px; height: 36.6px; border-radius: 50%; background: #fff;
+  display: grid; place-items: center; color: #1d2539;
+  box-shadow: 0 2.04px 8.14px rgba(82, 153, 255, 0.16);
+}
+.s1-stop--profile { left: 8.1px; top: 8.1px; }
+.s1-stop--lang { left: 69.2px; top: 69.2px; color: #0f7eff; }
+.s1-chev { position: absolute; }
+/* The tap on the language stop: a ring spreads off its edge. */
+.s1-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid #0f7eff; opacity: 0; pointer-events: none; }
+.s1-actions { display: grid; grid-template-columns: 158.5px 156.5px; gap: 12px; padding: 12px; }
 
 /* ── Sheet · option 3 (805:26233) ─────────────────────────────────────────
    351 × 230: Header content 24 · 21 · 4 · 20, 12 apart — the 60 glyph box, the

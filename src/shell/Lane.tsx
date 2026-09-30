@@ -223,7 +223,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
       />
 
       {/* The primary sheet (520:108779) runs its own engine and stays mounted;
-          option 3 (805:26233) docks through ConfirmSheet. */}
+          the compact one (530:27774) docks through ConfirmSheet. */}
       {confirm === "sheet2" ? (
         <LanguageSheet
           open={state.sheetOpen}
@@ -235,7 +235,7 @@ export function Device({ state, setState, pinned }: DeviceProps) {
             setTimeout(() => relaunch(otherLocale(state.locale)), HANDOFF_MS);
           }}
         />
-      ) : confirm === "sheet3" ? (
+      ) : confirm === "sheet1" || confirm === "sheet3" ? (
         <ConfirmSheet
           open={state.sheetOpen}
           variant={confirm}

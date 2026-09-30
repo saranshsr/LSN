@@ -16,11 +16,11 @@ import { ConfirmContext, confirmFromUrl, TextStyleContext, type Store, type Text
  * it already know the context.
  *
  * `?flow=ar|sm`, `?sheet=2` open a link on a view. `?device=en|ar|sm` (with
- * `&confirm=sheet2|sheet3|instant`) is one bare phone to present from;
+ * `&confirm=sheet1|sheet2|instant`) is one bare phone to present from;
  * `?solo=en&beat=sheet` parks one on a beat.
  */
 type Flow = "en" | "ar" | "sm";
-type SheetType = "sheet2" | "sheet3";
+type SheetType = "sheet1" | "sheet2" | "sheet3";
 
 const FLOWS: { id: Flow; label: string; start: Locale; store: Store; ids: [string, string] }[] = [
   { id: "en", label: "English → Arabic", start: "en", store: "noon", ids: ["A1", "A2"] },
@@ -37,10 +37,11 @@ const TEXTS: { id: TextStyle; label: string }[] = [
   // App's language first, then all of it turns into the offered one.
   { id: "flip", label: "Whole flip" },
 ];
-/** The illustrated sheet (520:108779) is primary; `?sheet=minimal` opens option 3. */
-const sheetFromUrl = (): SheetType => (q().get("sheet") === "minimal" ? "sheet3" : "sheet2");
+/** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
+const sheetFromUrl = (): SheetType => { const s = q().get("sheet"); return s === "compact" ? "sheet1" : s === "minimal" ? "sheet3" : "sheet2"; };
 const SHEETS: { id: SheetType; label: string }[] = [
   { id: "sheet2", label: "Illustrated sheet" },
+  { id: "sheet1", label: "Compact sheet" },
   // 805:26233: glyph, title, the two buttons, a one-line hint.
   { id: "sheet3", label: "Minimal sheet" },
 ];
@@ -61,7 +62,8 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "1") setSheet("sheet2");
-      if (e.key === "2") setSheet("sheet3");
+      if (e.key === "2") setSheet("sheet1");
+      if (e.key === "3") setSheet("sheet3");
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
@@ -69,7 +71,7 @@ export default function App() {
   useEffect(() => {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
-    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", "minimal");
+    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", sheet === "sheet1" ? "compact" : "minimal");
     if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", text);
     u.searchParams.delete("buttons");
     history.replaceState(null, "", u);

@@ -10,16 +10,18 @@ import type { Locale } from "../data/copy";
  *   B · Arabic app → English   (B1 with the sheet, B2 instant switch + undo)
  *
  * and three ways to confirm, shared by both:
+ *   sheet1  — "Sheet · option 1" (530:27774): copy + the way-back icon path,
+ *             Not now + the switch
  *   sheet2  — "Sheet · option 2" (530:28151): the Account page illustration,
  *             one dark switch button
- *   sheet3  — "Sheet · option 3" (805:26233): the language glyph, the title,
- *             the two buttons and a one-line hint of the way back
  *   instant — no sheet: the switch happens, and an undo toast offers the way
  *             back for 4 s
- * (Option 1, the compact sheet, was dropped on 30 Sep.)
- * `?confirm=sheet2` opens a link on one; keys 1 2 switch the sheet live.
+ *
+ *   sheet3  — "Sheet · option 3" (805:26233): the language glyph, the title,
+ *             the two buttons and a one-line hint of the way back
+ * `?confirm=sheet2` opens a link on one; keys 1 2 3 switch it live.
  */
-export type Confirm = "sheet2" | "sheet3" | "instant";
+export type Confirm = "sheet1" | "sheet2" | "sheet3" | "instant";
 
 export const ConfirmContext = createContext<Confirm>("sheet2");
 export const useConfirm = () => useContext(ConfirmContext);
@@ -27,7 +29,7 @@ export const useConfirm = () => useContext(ConfirmContext);
 export const confirmFromUrl = (): Confirm => {
   const c = new URLSearchParams(location.search).get("confirm");
   // The illustrated sheet (520:108779) is the primary one since 25 Sep.
-  return c === "sheet3" || c === "instant" ? c : "sheet2";
+  return c === "sheet1" || c === "sheet3" || c === "instant" ? c : "sheet2";
 };
 
 /** noon, or super mall (SM1 / SM2, 603:41789 · 603:45751). */
@@ -115,12 +117,20 @@ export const NUDGE: Record<Locale, {
 /** The two sheets, in the app's language. The switch button is in the
  *  OFFERED language, the rest in the app's. */
 export const SHEET: Record<Locale, {
+  one: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
   two: { title: string; body: string; cancel: string; action: string; actionLang: Locale };
   /** 805:26233: option 1's title and buttons, the way back as a hint whose
    *  destination is set Bold. */
   three: { title: string; hint: string; hintStrong: string; cancel: string; action: string; actionLang: Locale };
 }> = {
   en: {
+    one: {
+      title: "You’re switching the app to العربية‎",
+      body: "Go to Accounts and choose Language to change it anytime.",
+      // Not "Not now": it would clash with "change it anytime" (28 Sep).
+      cancel: "Keep English",
+      action: "تبديل", actionLang: "ar", // "Switch"
+    },
     two: {
       title: "You’re switching to العربية‎",
       body: "Go to Accounts and choose Language to change it anytime.",
@@ -136,6 +146,14 @@ export const SHEET: Record<Locale, {
     },
   },
   ar: {
+    one: {
+      // "You're switching the app to English"
+      title: "أنت تنقل التطبيق إلى English",
+      // "Go to Account and choose Language to change it anytime."
+      body: "اذهب إلى الحساب واختر اللغة لتغييرها في أي وقت.",
+      cancel: "الإبقاء على العربية", // "Keep Arabic"
+      action: "Switch", actionLang: "en",
+    },
     two: {
       title: "أنت تنتقل إلى English", // "You're switching to English"
       body: "اذهب إلى الحساب واختر اللغة لتغييرها في أي وقت.", // "Go to Account and choose Language to change it anytime."
