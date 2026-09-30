@@ -23,13 +23,13 @@ import type { Locale } from "../data/copy";
  */
 export type Confirm = "sheet1" | "sheet2" | "sheet3" | "instant";
 
-export const ConfirmContext = createContext<Confirm>("sheet2");
+export const ConfirmContext = createContext<Confirm>("sheet3");
 export const useConfirm = () => useContext(ConfirmContext);
 
 export const confirmFromUrl = (): Confirm => {
   const c = new URLSearchParams(location.search).get("confirm");
-  // The illustrated sheet (520:108779) is the primary one since 25 Sep.
-  return c === "sheet1" || c === "sheet3" || c === "instant" ? c : "sheet2";
+  // The minimal sheet (805:26233) is the default since 30 Sep.
+  return c === "sheet1" || c === "sheet2" || c === "instant" ? c : "sheet3";
 };
 
 /** noon, or super mall (SM1 / SM2, 603:41789 · 603:45751). */

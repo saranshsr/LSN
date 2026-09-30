@@ -37,13 +37,14 @@ const TEXTS: { id: TextStyle; label: string }[] = [
   // App's language first, then all of it turns into the offered one.
   { id: "flip", label: "Whole flip" },
 ];
-/** The illustrated sheet (520:108779) is primary; `?sheet=compact` opens the other. */
-const sheetFromUrl = (): SheetType => { const s = q().get("sheet"); return s === "compact" ? "sheet1" : s === "minimal" ? "sheet3" : "sheet2"; };
+/** The minimal sheet (805:26233) is the default since 30 Sep;
+ *  `?sheet=illustrated` / `?sheet=compact` open the others. */
+const sheetFromUrl = (): SheetType => { const s = q().get("sheet"); return s === "compact" ? "sheet1" : s === "illustrated" ? "sheet2" : "sheet3"; };
 const SHEETS: { id: SheetType; label: string }[] = [
-  { id: "sheet2", label: "Illustrated sheet" },
-  { id: "sheet1", label: "Compact sheet" },
   // 805:26233: glyph, title, the two buttons, a one-line hint.
   { id: "sheet3", label: "Minimal sheet" },
+  { id: "sheet2", label: "Illustrated sheet" },
+  { id: "sheet1", label: "Compact sheet" },
 ];
 
 function solo() {
@@ -61,9 +62,9 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "1") setSheet("sheet2");
-      if (e.key === "2") setSheet("sheet1");
-      if (e.key === "3") setSheet("sheet3");
+      if (e.key === "1") setSheet("sheet3");
+      if (e.key === "2") setSheet("sheet2");
+      if (e.key === "3") setSheet("sheet1");
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
@@ -71,7 +72,7 @@ export default function App() {
   useEffect(() => {
     const u = new URL(location.href);
     if (flow === "en") u.searchParams.delete("flow"); else u.searchParams.set("flow", flow);
-    if (sheet === "sheet2") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", sheet === "sheet1" ? "compact" : "minimal");
+    if (sheet === "sheet3") u.searchParams.delete("sheet"); else u.searchParams.set("sheet", sheet === "sheet1" ? "compact" : "illustrated");
     if (text === "button") u.searchParams.delete("text"); else u.searchParams.set("text", text);
     u.searchParams.delete("buttons");
     history.replaceState(null, "", u);
