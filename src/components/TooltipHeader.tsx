@@ -51,12 +51,15 @@ type Props = {
 };
 
 /** Where each header's bar sits, and what it leaves below.
- *  noon (A1 · 03): the stage at 50.57, 14 of white under it either way.
+ *  noon: the stage at 50.57; open (A1 · 03) the chips start at the banner's
+ *  bottom, shut (A1 · 04) 14 of white under the bar.
  *  super mall (SM1 · 03 / 04): the bar at y49, the card at y104, the chips at
  *  157 open and 105 shut. The stage sits 3 higher and the bar 3 lower inside
  *  it, so the card lands on 104 without changing the shared motion core. */
 const GEO = {
-  noon: { stageY: STAGE_Y, searchTop: 0, padOpen: PAD_B, padShut: PAD_B },
+  // A1 · 03: the chip row starts at the banner's own bottom edge (its 8 of
+  // padding is the whole gap); A1 · 04: 14 under the bar alone.
+  noon: { stageY: STAGE_Y, searchTop: 0, padOpen: 0, padShut: PAD_B },
   sm: { stageY: 46, searchTop: 3, padOpen: 5, padShut: 15 },
 };
 
