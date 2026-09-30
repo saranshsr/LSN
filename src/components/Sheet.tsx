@@ -238,40 +238,27 @@ function InfoIcon() {
 
 /**
  * "Sheet · option 3" (805:26233): the language glyph, the title, Keep English
- * + the switch, and the way back as one line under them. It builds the way
- * the other two build their scenes, on the same springs — the sheet docks,
- * then 0.14 the glyph pops (`pop`), 0.2 the title rises (`rise`), 0.3 the hint
- * follows; the buttons are there from the start, like the others'. No loop:
- * there is no switch in the picture to show. Reduced motion: at rest.
+ * + the switch, and the way back as one line under them. Only the sheet itself
+ * moves — it docks and leaves like the others; nothing inside it animates
+ * (30 Sep).
  */
 function SheetThree({ locale, onKeep, onConfirm }: { locale: Locale; onKeep: () => void; onConfirm: () => void }) {
   const c = SHEET[locale].three;
-  const reduced = useReducedMotion();
-  const up = (delay: number, spring = SPR.rise) => reduced ? {} : {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0, transition: { ...spring, delay: at(delay) } },
-  };
   return (
     <div className="v5-sheet s3" role="dialog" aria-label={c.title}>
       <div className="s3-head">
-        <motion.span
-          className="s3-glyph"
-          initial={reduced ? false : { opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1, transition: { opacity: { ...SPR.fade, delay: at(0.14) }, scale: { ...SPR.pop, delay: at(0.14) } } }}
-        >
-          <LangGlyph />
-        </motion.span>
-        <motion.h2 className="s3-title" {...up(0.2)}>{c.title}</motion.h2>
+        <span className="s3-glyph"><LangGlyph /></span>
+        <h2 className="s3-title">{c.title}</h2>
       </div>
       <div className="s3-body">
         <div className="s3-actions">
           <button className="v5-btn v5-btn--quiet" onClick={onKeep}>{c.cancel}</button>
           <button className="v5-btn v5-btn--go" onClick={onConfirm} lang={c.actionLang}>{c.action}</button>
         </div>
-        <motion.p className="s3-hint" {...up(0.3)}>
+        <p className="s3-hint">
           <InfoIcon />
           <span>{c.hint}<b>{c.hintStrong}</b></span>
-        </motion.p>
+        </p>
       </div>
     </div>
   );
