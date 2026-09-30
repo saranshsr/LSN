@@ -57,10 +57,14 @@ type Props = {
  *  157 open and 105 shut. The stage sits 3 higher and the bar 3 lower inside
  *  it, so the card lands on 104 without changing the shared motion core. */
 const GEO = {
-  // A1 · 03: the chip row starts at the banner's own bottom edge (its 8 of
-  // padding is the whole gap); A1 · 04: 14 under the bar alone.
-  noon: { stageY: STAGE_Y, searchTop: 0, padOpen: 0, padShut: PAD_B },
-  sm: { stageY: 46, searchTop: 3, padOpen: 5, padShut: 15 },
+  // Open, the chips sit 12 under the banner (30 Sep: Figma's 8 + 4; the chip
+  // row's own 8 of padding plus 4 here); A1 · 04: 14 under the bar alone.
+  // scrollPad: once the page scrolls under the open banner, the header's white
+  // grows by this much below it (30 Sep) — 4 + 10 = the 14 the bar alone has —
+  // so the chips tuck under a margin, not the banner's edge. It covers content
+  // rather than moving it: the inset the scroller reads leaves it out.
+  noon: { stageY: STAGE_Y, searchTop: 0, padOpen: 4, padShut: PAD_B, scrollPad: 10 },
+  sm: { stageY: 46, searchTop: 3, padOpen: 5, padShut: 15, scrollPad: 0 },
 };
 
 export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, onDismiss, onHeight }: Props) {
@@ -283,7 +287,10 @@ export function TooltipHeader({ state, locale, query, store = "noon", onSwitch, 
     // already below the collapsed bar. The card floats; it may overhang.
     const held = Math.max(stageH, tileBottom);
     const G = geoRef.current, pad = lerp(G.padOpen, G.padShut, clamp(v.lay));
-    s(r.header.current, { height: `${G.stageY + held + pad}px` });
+    // --scrolled (0 → 1 over the first 12 px, ResultsScreen) also drives the shadow.
+    const scrolled = parseFloat(r.header.current?.style.getPropertyValue("--scrolled") || "0") || 0;
+    const extra = G.scrollPad * scrolled * (1 - clamp(v.lay));
+    s(r.header.current, { height: `${G.stageY + held + pad + extra}px` });
     onHeight?.(G.stageY + Math.max(stageH, tileBottom) + pad);
   };
 
