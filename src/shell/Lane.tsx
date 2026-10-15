@@ -301,13 +301,13 @@ function RestartButton({ label, onRestart, keyHint }: { label: string; onRestart
   );
 }
 
-type Props = { start: Locale; store: Store; tag: string; name: string };
+type Props = { start: Locale; store: Store; tag: string; name: string; rank?: "recommended" | "alternative" };
 
 /**
  * One phone, its id and a restart — nothing else. The people trying it know
  * the context; the phone is the explanation.
  */
-export function Lane({ start, store, tag, name }: Props) {
+export function Lane({ start, store, tag, name, rank }: Props) {
   const [state, setState] = useState<FlowState>(() => initialFor(start, store));
   const confirm = useConfirm();
   const first = useRef(true);
@@ -317,11 +317,12 @@ export function Lane({ start, store, tag, name }: Props) {
   }, [confirm, start, store]);
 
   return (
-    <section className="lane v5-lane">
+    <section className="lane v5-lane" data-rank={rank}>
       <div className="lane-head">
         <div className="lane-title">
           <span className="version-ids">{tag}</span>
           <h3 className="lane-name">{name}</h3>
+          {rank && <span className="lane-rank">{rank === "recommended" ? "Recommended" : "Alternative"}</span>}
         </div>
         <IconRestart label={`Restart ${tag}`} onRestart={() => setState(initialFor(start, store))} />
       </div>

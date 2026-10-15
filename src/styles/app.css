@@ -1253,13 +1253,41 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* ── v5 shell: one bar, two phones ───────────────────────────────────────── */
 .v5-shell { padding-top: 24px; }
 .v5-bar {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px;
-  max-width: 1180px; margin: 0 auto 28px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  max-width: 1180px; margin: 0 auto 32px;
 }
-.v5-mark { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: #e8eaf0; margin-inline-end: 8px; }
+.v5-intro { text-align: center; }
+.v5-mark { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: #f5f7fa; }
+.v5-hint { margin: 4px 0 0; font-size: 13px; color: #8b94a8; }
+.v5-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; }
+.v5-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9aa3b4; }
+.v5-label--quiet { color: #6b7487; }
+/* Options read as secondary: smaller type, quieter ink, a lighter frame. */
+.v5-row--options { gap: 10px 24px; }
+.v5-opt { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; }
+.v5-opt-label { font-size: 12px; font-weight: 500; color: #8b94a8; }
+.v5-opt-scope { color: #6b7487; }
+.seg--lg .seg-opt { padding: 8px 16px; font-size: 14px; }
+.seg--sm { border-color: #262b36; background: transparent; }
+.seg--sm .seg-opt { padding: 5px 11px; font-size: 12px; color: #8b94a8; }
+.seg--sm .seg-opt[data-on] { background: #2a303c; color: #f5f7fa; }
+.seg-rec {
+  margin-inline-start: 6px; padding: 1px 5px; border-radius: 4px; vertical-align: 1px;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #7fd8a6; background: rgba(127, 216, 166, 0.12);
+}
 .v5-stage { gap: 56px; }
 .v5-lane .lane-head { margin-bottom: 12px; }
 .v5-lane .lane-name { font-size: 14px; font-weight: 500; color: #b9c1d1; }
+.lane-rank {
+  align-self: center; padding: 2px 7px; border-radius: 5px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #7fd8a6; background: rgba(127, 216, 166, 0.12);
+}
+/* The alternative stays full size and fully usable; only its header recedes. */
+.v5-lane[data-rank="alternative"] .lane-rank { color: #8b94a8; background: #1c212b; }
+.v5-lane[data-rank="alternative"] .version-ids { color: #8b94a8; background: #1c212b; }
+.v5-lane[data-rank="alternative"] .lane-name { color: #7c8598; }
 .lane-restart.lane-restart--icon { min-height: 36px; width: 36px; padding: 0; justify-content: center; border-radius: 10px; }
 
 /* ── The sheet, 520:108779 (components/LanguageSheet) ─────────────────────
