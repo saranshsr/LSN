@@ -4,7 +4,8 @@ Prototype of noon's app-language nudge, iteration 5 — Figma
 `JovVwactrtpNkNSPfu4tsm`, page `528:2` "Iteration 5 - 25 Sep".
 
 Pick a flow; each shows its two versions side by side — with the sheet, and the
-instant switch with undo. One toggle picks the sheet (keys 1 / 2).
+instant switch with undo. Two more toggles pick the sheet (keys 1 / 2 / 3) and
+how the nudge's text teaches the offered language.
 
 | Flow | Versions | Starts on |
 | --- | --- | --- |
@@ -21,6 +22,14 @@ npm install
 npm run dev        # http://localhost:5193
 ```
 
-- `?flow=ar` / `?flow=sm`, `?sheet=compact` — open on a view (the illustrated sheet, 520:108779, is the default)
-- `?device=en|ar|sm&confirm=sheet1|sheet2|instant` — one bare phone to present from (R restarts)
+- `?flow=ar` / `?flow=sm` — open on a flow
+- `?sheet=illustrated` / `?sheet=compact` — the other sheets (Minimal, 805:26233, is the default)
+- `?text=whole` / `?text=flip` — the other text styles (Button only is the default)
+- `?device=en|ar|sm&confirm=sheet1|sheet2|sheet3|instant` — one bare phone to present from (R restarts)
 - `?solo=sm&beat=sheet` — park a phone on a beat
+
+The page header and its toggles (flows, sheets, text) are in `src/App.tsx` —
+the `FLOWS`, `SHEETS` and `TEXTS` lists and the `.v5-bar` markup; their styles
+are the `.v5-bar` / `.seg` rules in `src/styles/app.css`.
+
+Deployed by hand with the Vercel CLI (`vercel deploy --prod`); pushing does not deploy.
